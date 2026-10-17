@@ -4,7 +4,6 @@ import type {
   NotificationConfig,
   NotificationPriority,
   NotificationSettings,
-  ReceivedNotification,
 } from '@/types/notification';
 
 export function loadNotificationConfig(nodeId: string): Promise<NotificationConfig> {
@@ -33,14 +32,6 @@ export function refreshNotificationConnections(): Promise<void> {
 
 export function getNotificationConnections(): Promise<ConnectionStatus[]> {
   return invoke<ConnectionStatus[]>('get_notification_connections');
-}
-
-export function loadNotificationHistory(): Promise<ReceivedNotification[]> {
-  return invoke<ReceivedNotification[]>('load_notification_history');
-}
-
-export function clearNotificationHistory(): Promise<void> {
-  return invoke('clear_notification_history');
 }
 
 export function sendTestNotification(nodeId: string, priority: NotificationPriority): Promise<number> {

@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use super::protocol::NotificationPayload;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum PriorityFilter {
@@ -53,18 +51,6 @@ pub struct ConnectionStatus {
     pub state: ConnectionState,
     pub message: Option<String>,
     pub updated_at: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ReceivedNotification {
-    pub id: String,
-    pub node_id: String,
-    pub sent_at: String,
-    pub received_at: u64,
-    pub shown: bool,
-    #[serde(flatten)]
-    pub payload: NotificationPayload,
 }
 
 pub fn admin_key_secret(node_id: &str) -> String {

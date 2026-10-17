@@ -35,6 +35,26 @@ export interface MailAccountView {
   lastCheckedAt: number | null;
 }
 
+export type MailDecision = 'notify' | 'ignore';
+
+export type MailHistoryPriority = 'normal' | 'urgent';
+
+export interface MailHistoryEntry {
+  id: string;
+  accountId: string;
+  accountName: string;
+  accountEmail: string;
+  provider: MailProviderId;
+  from: string;
+  subject: string;
+  receivedAt: number;
+  processedAt: number;
+  decision: MailDecision;
+  priority: MailHistoryPriority | null;
+  summary: string | null;
+  deadline: string | null;
+}
+
 export interface ConnectMailAccountInput {
   provider: MailProviderId;
   email: string;

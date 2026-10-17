@@ -43,8 +43,6 @@ pub struct Envelope {
     pub v: u32,
     #[serde(rename = "type")]
     pub kind: String,
-    pub id: String,
-    pub sent_at: String,
     pub data: Value,
 }
 

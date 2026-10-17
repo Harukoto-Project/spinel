@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { MailAccountStore } from './accounts/MailAccountStore.js';
 import { MailError, ProviderAuthError } from './errors.js';
+import type { MailHistoryStore } from './history/MailHistoryStore.js';
 import type { ProviderRegistry } from './providers/ProviderRegistry.js';
 import { isValidPollInterval, type MailSettingsStore } from './settings/MailSettingsStore.js';
 import {
@@ -9,6 +10,7 @@ import {
   toMailAccountView,
   type ConnectMailAccountInput,
   type MailAccountView,
+  type MailHistoryEntry,
   type MailSettings,
 } from './types.js';
 
@@ -17,7 +19,24 @@ export class MailService {
     private readonly accounts: MailAccountStore,
     private readonly providers: ProviderRegistry,
     private readonly settings: MailSettingsStore,
+    private readonly history: MailHistoryStore,
   ) {}
+
+  public listHistory(): MailHistoryEntry[] {
+    return this.history.list();
+  }
+
+  public async removeHistory(id: string): Promise<MailHistoryEntry[]> {
+    if (!(await this.history.remove(id))) {
+      throw new MailError(404, 'not_found', '履歴が見つかりません');
+    }
+    return this.history.list();
+  }
+
+  public async clearHistory(): Promise<MailHistoryEntry[]> {
+    await this.history.clear();
+    return [];
+  }
 
   public listAccounts(): MailAccountView[] {
     return this.accounts.list().map(toMailAccountView);

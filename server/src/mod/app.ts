@@ -12,6 +12,7 @@ import { HealthService } from './health/HealthService.js';
 import { registerErrorHandler } from './http/errorHandler.js';
 import type { Logger } from './logger.js';
 import { MailAccountStore } from './mail/accounts/MailAccountStore.js';
+import { MailHistoryStore } from './mail/history/MailHistoryStore.js';
 import { MailPoller } from './mail/MailPoller.js';
 import { MailService } from './mail/MailService.js';
 import { ProcessedStore } from './mail/ProcessedStore.js';
@@ -30,6 +31,7 @@ const ADMIN_KEY_FILE = 'admin-key.json';
 const MAIL_ACCOUNTS_FILE = 'mail-accounts.json';
 const MAIL_SETTINGS_FILE = 'mail-settings.json';
 const MAIL_PROCESSED_FILE = 'mail-processed.json';
+const MAIL_HISTORY_FILE = 'mail-history.json';
 const SOCKET_MAX_PAYLOAD_BYTES = 1024;
 const REQUIRED_AI_KEYS = ['TYPESAFE_API_KEY', 'ANTHROPIC_API_KEY'] as const;
 
@@ -59,7 +61,8 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
   const accounts = new MailAccountStore(dataPath(MAIL_ACCOUNTS_FILE));
   const settings = new MailSettingsStore(dataPath(MAIL_SETTINGS_FILE));
   const processed = new ProcessedStore(dataPath(MAIL_PROCESSED_FILE));
-  await Promise.all([accounts.load(), settings.load(), processed.load()]);
+  const history = new MailHistoryStore(dataPath(MAIL_HISTORY_FILE));
+  await Promise.all([accounts.load(), settings.load(), processed.load(), history.load()]);
 
   const googleTokens = config.google
     ? new GoogleAccessTokens(config.google.clientId, config.google.clientSecret)
@@ -94,6 +97,7 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
     providers,
     settings,
     processed,
+    history,
     getTriage: () => (triage ??= new Triage(config.triage)),
     publish: (payload) => hub.publish(payload),
     logger,
@@ -105,7 +109,7 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
     health: new HealthService(version),
     auth: new AuthService(adminKeys, new TokenStore(), new FailureLimiter()),
     hub,
-    mail: new MailService(accounts, providers, settings),
+    mail: new MailService(accounts, providers, settings, history),
   });
 
   return app;

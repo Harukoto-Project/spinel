@@ -1,7 +1,6 @@
 import { PageHeader } from '@/components/layout/PageHeader';
 import { NodeRequiredNotice } from '@/components/nodes/NodeRequiredNotice';
 import { NodeSelect } from '@/components/nodes/NodeSelect';
-import { NotificationHistorySection } from '@/components/notifications/NotificationHistorySection';
 import { NotificationNodeSettings } from '@/components/notifications/NotificationNodeSettings';
 import { NotificationNodeSettingsSkeleton } from '@/components/notifications/NotificationNodeSettingsSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,25 +12,22 @@ export function EmailNotificationSettingsPage() {
   const { selectedNode, setSelectedId } = useSelectedNode(nodes);
 
   return (
-    <div className="flex flex-col gap-8 p-4 md:p-8">
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <PageHeader title="メールの通知設定" />
-          {!loaded ? (
-            <Skeleton className="h-9 w-full sm:w-64" />
-          ) : (
-            selectedNode && <NodeSelect nodes={nodes} value={selectedNode.id} onValueChange={setSelectedId} />
-          )}
-        </div>
+    <div className="flex flex-col gap-6 p-4 md:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <PageHeader title="メールの通知設定" />
         {!loaded ? (
-          <NotificationNodeSettingsSkeleton />
-        ) : selectedNode ? (
-          <NotificationNodeSettings key={selectedNode.id} nodeId={selectedNode.id} />
+          <Skeleton className="h-9 w-full sm:w-64" />
         ) : (
-          <NodeRequiredNotice />
+          selectedNode && <NodeSelect nodes={nodes} value={selectedNode.id} onValueChange={setSelectedId} />
         )}
       </div>
-      <NotificationHistorySection nodes={nodes} />
+      {!loaded ? (
+        <NotificationNodeSettingsSkeleton />
+      ) : selectedNode ? (
+        <NotificationNodeSettings key={selectedNode.id} nodeId={selectedNode.id} />
+      ) : (
+        <NodeRequiredNotice />
+      )}
     </div>
   );
 }

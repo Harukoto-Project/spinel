@@ -8,19 +8,19 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-type ClearHistoryDialogProps = {
+type ClearMailHistoryDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
 };
 
-export function ClearHistoryDialog({ open, onOpenChange, onConfirm }: ClearHistoryDialogProps) {
+export function ClearMailHistoryDialog({ open, onOpenChange, onConfirm }: ClearMailHistoryDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>通知履歴を削除しますか?</DialogTitle>
-          <DialogDescription>このアプリに保存されているすべてのノードの通知履歴を削除します。</DialogDescription>
+          <DialogTitle>履歴をすべて削除しますか?</DialogTitle>
+          <DialogDescription>このノードに保存されているメールの処理履歴(通知・除外)をすべて削除します。</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button className="cursor-pointer" variant="outline" onClick={() => onOpenChange(false)}>

@@ -29,7 +29,7 @@ fn server_message(body: &str) -> Option<String> {
         .map(str::to_string)
 }
 
-async fn send<T: DeserializeOwned>(
+pub(crate) async fn send<T: DeserializeOwned>(
     target: &NodeTarget,
     method: Method,
     path: &str,

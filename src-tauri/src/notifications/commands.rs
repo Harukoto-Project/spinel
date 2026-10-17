@@ -1,11 +1,9 @@
 use tauri::{AppHandle, State};
 
 use super::api::{self, ApiError};
-use super::history_store::NotificationHistoryStore;
 use super::manager::NotificationManager;
 use super::model::{
-    ConnectionStatus, NotificationConfigView, NotificationSettings, ReceivedNotification,
-    admin_key_secret,
+    ConnectionStatus, NotificationConfigView, NotificationSettings, admin_key_secret,
 };
 use super::protocol::Priority;
 use super::settings_store::NotificationSettingsStore;
@@ -93,20 +91,6 @@ pub fn get_notification_connections(
     manager: State<'_, NotificationManager>,
 ) -> Vec<ConnectionStatus> {
     manager.statuses()
-}
-
-#[tauri::command]
-pub fn load_notification_history(
-    history: State<'_, NotificationHistoryStore>,
-) -> Result<Vec<ReceivedNotification>, String> {
-    history.list()
-}
-
-#[tauri::command]
-pub fn clear_notification_history(
-    history: State<'_, NotificationHistoryStore>,
-) -> Result<(), String> {
-    history.clear()
 }
 
 #[tauri::command]

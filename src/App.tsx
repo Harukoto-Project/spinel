@@ -6,10 +6,12 @@ import { ApiSettingsPage } from '@/pages/ApiSettingsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { EmailNotificationSettingsPage } from '@/pages/EmailNotificationSettingsPage';
 import { MailAccountsPage } from '@/pages/MailAccountsPage';
+import { MailHistoryPage } from '@/pages/MailHistoryPage';
 
 const PAGES: Record<string, ReactNode> = {
   dashboard: <DashboardPage />,
   'email-notification-settings': <EmailNotificationSettingsPage />,
+  'mail-history': <MailHistoryPage />,
   'api-settings': <ApiSettingsPage />,
   'mail-accounts': <MailAccountsPage />,
 };

@@ -1,15 +1,8 @@
-import type { ConnectionState, NotificationKind, NotificationPriority, PriorityFilter } from '@/types/notification';
-
-export const NOTIFICATION_HISTORY_LIMIT = 200;
+import type { ConnectionState, NotificationPriority, PriorityFilter } from '@/types/notification';
 
 export const PRIORITY_LABELS: Record<NotificationPriority, string> = {
   normal: '通常',
   urgent: '緊急',
-};
-
-export const KIND_LABELS: Record<NotificationKind, string> = {
-  mail: 'メール',
-  test: 'テスト',
 };
 
 export const PRIORITY_FILTER_OPTIONS: { value: PriorityFilter; label: string }[] = [

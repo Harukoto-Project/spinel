@@ -4,11 +4,13 @@ import type { NotificationPayload } from '../notifications/protocol.js';
 import type { Triage } from '../triage/Triage.js';
 import type { MailAccountStore } from './accounts/MailAccountStore.js';
 import { ProviderAuthError } from './errors.js';
+import { buildHistoryEntry } from './history/buildHistoryEntry.js';
+import type { MailHistoryStore } from './history/MailHistoryStore.js';
 import type { ProcessedStore } from './ProcessedStore.js';
 import type { MailProvider } from './providers/MailProvider.js';
 import type { ProviderRegistry } from './providers/ProviderRegistry.js';
 import type { MailSettingsStore } from './settings/MailSettingsStore.js';
-import type { Mail, StoredMailAccount } from './types.js';
+import type { Mail, MailDecision, StoredMailAccount } from './types.js';
 
 const INITIAL_DELAY_MS = 5_000;
 const MAX_ATTEMPTS = 3;
@@ -18,6 +20,7 @@ export interface MailPollerDeps {
   providers: ProviderRegistry;
   settings: MailSettingsStore;
   processed: ProcessedStore;
+  history: MailHistoryStore;
   getTriage: () => Triage;
   publish: (payload: NotificationPayload) => number;
   logger: Logger;
@@ -125,7 +128,7 @@ export class MailPoller {
 
   private async process(account: StoredMailAccount, mail: Mail): Promise<boolean> {
     try {
-      await this.judge(mail);
+      await this.judge(account, mail);
       this.attempts.delete(mail.id);
       await this.deps.processed.add(mail.id);
       return true;
@@ -143,16 +146,35 @@ export class MailPoller {
     }
   }
 
-  private async judge(mail: Mail): Promise<void> {
+  private async judge(account: StoredMailAccount, mail: Mail): Promise<void> {
     const result = await this.deps.getTriage().run(mail);
     this.deps.logger.info(
       `[${result.decision}] by ${result.decidedBy} relevance=${result.jev.relevance.toFixed(2)} junk=${result.jev.junk.toFixed(2)} action=${result.jev.actionRequired.toFixed(2)} deadline=${result.jev.hasDeadline.toFixed(2)} importance=${result.jev.importance.toFixed(2)} | ${mail.from} | ${mail.subject}`,
     );
-    if (result.decision !== 'notify') return;
 
-    const delivered = this.deps.publish(buildMailNotification(result));
+    if (result.decision !== 'notify') {
+      await this.record(account, mail, 'ignore', null);
+      return;
+    }
+
+    const payload = buildMailNotification(result);
+    const delivered = this.deps.publish(payload);
     if (delivered === 0) {
       this.deps.logger.warn(`通知の配信先(接続中のクライアント)がありません: ${mail.subject}`);
+    }
+    await this.record(account, mail, 'notify', payload);
+  }
+
+  private async record(
+    account: StoredMailAccount,
+    mail: Mail,
+    decision: MailDecision,
+    payload: NotificationPayload | null,
+  ): Promise<void> {
+    try {
+      await this.deps.history.add(buildHistoryEntry(account, mail, decision, payload));
+    } catch (error) {
+      this.deps.logger.error(`[${account.name}] メール履歴を保存できませんでした: ${mail.subject}`, error);
     }
   }
 }

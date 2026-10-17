@@ -150,7 +150,7 @@ fn handle_text(app: &AppHandle, node: &StoredNode, text: &str) -> Option<Duratio
             }),
         "notification" => {
             match serde_json::from_value::<NotificationPayload>(envelope.data) {
-                Ok(payload) => delivery::deliver(app, node, envelope.id, envelope.sent_at, payload),
+                Ok(payload) => delivery::deliver(app, node, payload),
                 Err(e) => eprintln!("通知の形式が正しくありません: {e}"),
             }
             None

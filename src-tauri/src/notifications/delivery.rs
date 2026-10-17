@@ -1,22 +1,12 @@
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
 
-use super::clock::now_ms;
-use super::history_store::NotificationHistoryStore;
-use super::model::{PriorityFilter, ReceivedNotification};
+use super::model::PriorityFilter;
 use super::protocol::{Kind, NotificationPayload, Priority};
 use super::settings_store::NotificationSettingsStore;
 use super::toast;
 use crate::nodes::model::StoredNode;
 
-pub const RECEIVED_EVENT: &str = "notification-received";
-
-pub fn deliver(
-    app: &AppHandle,
-    node: &StoredNode,
-    id: String,
-    sent_at: String,
-    payload: NotificationPayload,
-) {
+pub fn deliver(app: &AppHandle, node: &StoredNode, payload: NotificationPayload) {
     let settings = app
         .state::<NotificationSettingsStore>()
         .load(&node.id)
@@ -29,29 +19,10 @@ pub fn deliver(
         }
     };
 
-    let shown = allowed
-        && match toast::show(app, &node.name, &payload, &settings) {
-            Ok(()) => true,
-            Err(e) => {
-                eprintln!("Windows 通知を表示できません: {e}");
-                false
-            }
-        };
-
-    let record = ReceivedNotification {
-        id,
-        node_id: node.id.clone(),
-        sent_at,
-        received_at: now_ms(),
-        shown,
-        payload,
-    };
-
-    if let Err(e) = app
-        .state::<NotificationHistoryStore>()
-        .push(record.clone())
-    {
-        eprintln!("通知履歴を保存できません: {e}");
+    if !allowed {
+        return;
     }
-    let _ = app.emit(RECEIVED_EVENT, &record);
+    if let Err(e) = toast::show(app, &node.name, &payload, &settings) {
+        eprintln!("Windows 通知を表示できません: {e}");
+    }
 }

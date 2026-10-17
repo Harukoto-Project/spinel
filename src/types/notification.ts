@@ -1,7 +1,5 @@
 export type NotificationPriority = 'normal' | 'urgent';
 
-export type NotificationKind = 'mail' | 'test';
-
 export type PriorityFilter = 'all' | 'urgentOnly';
 
 export type NotificationSettings = {
@@ -22,26 +20,4 @@ export type ConnectionStatus = {
   state: ConnectionState;
   message: string | null;
   updatedAt: number;
-};
-
-export type MailDetail = {
-  account: string;
-  from: string;
-  subject: string;
-  receivedAt: string;
-  summary: string;
-  deadline: string | null;
-};
-
-export type ReceivedNotification = {
-  id: string;
-  nodeId: string;
-  sentAt: string;
-  receivedAt: number;
-  shown: boolean;
-  kind: NotificationKind;
-  priority: NotificationPriority;
-  title: string;
-  body: string;
-  mail: MailDetail | null;
 };

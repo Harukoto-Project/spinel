@@ -35,6 +35,13 @@ pub fn purge_imap_data(path: &Path) -> Result<(), String> {
     remove_file(path)
 }
 
+pub fn purge_local_notification_history(path: &Path) -> Result<(), String> {
+    if !path.exists() {
+        return Ok(());
+    }
+    remove_file(path)
+}
+
 pub fn purge_local_mail_accounts(path: &Path) -> Result<(), String> {
     if !path.exists() {
         return Ok(());

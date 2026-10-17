@@ -1,5 +1,6 @@
 mod json_file;
 mod mail_accounts;
+mod mail_history;
 mod nodes;
 mod notifications;
 mod secrets;
@@ -11,23 +12,22 @@ use mail_accounts::commands::{
     connect_mail_account, delete_mail_account, load_mail_accounts, load_mail_settings,
     save_mail_settings,
 };
+use mail_history::commands::{clear_mail_history, delete_mail_history, load_mail_history};
 use nodes::commands::{load_nodes, save_nodes};
 use nodes::store::NodeStore;
 use notifications::commands::{
-    clear_notification_history, delete_node_admin_key, delete_notification_config,
-    get_notification_connections, load_notification_config, load_notification_history,
-    refresh_notification_connections, save_notification_settings, send_test_notification,
-    set_node_admin_key,
+    delete_node_admin_key, delete_notification_config, get_notification_connections,
+    load_notification_config, refresh_notification_connections, save_notification_settings,
+    send_test_notification, set_node_admin_key,
 };
-use notifications::history_store::NotificationHistoryStore;
 use notifications::manager::NotificationManager;
 use notifications::settings_store::NotificationSettingsStore;
 
 const NODES_FILE: &str = "nodes.json";
 const LEGACY_MAIL_ACCOUNTS_FILE: &str = "mail_accounts.json";
 const LEGACY_IMAP_FILE: &str = "imap.json";
+const LEGACY_NOTIFICATION_HISTORY_FILE: &str = "notification_history.json";
 const NOTIFICATION_SETTINGS_FILE: &str = "notification_settings.json";
-const NOTIFICATION_HISTORY_FILE: &str = "notification_history.json";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -41,9 +41,6 @@ pub fn run() {
             app.manage(NotificationSettingsStore::new(
                 dir.join(NOTIFICATION_SETTINGS_FILE),
             ));
-            app.manage(NotificationHistoryStore::new(
-                dir.join(NOTIFICATION_HISTORY_FILE),
-            ));
             app.manage(NotificationManager::new());
 
             tray::setup(app.handle())?;
@@ -55,6 +52,11 @@ pub fn run() {
                 &dir.join(LEGACY_MAIL_ACCOUNTS_FILE),
             ) {
                 eprintln!("旧メールアカウント設定を削除できません: {e}");
+            }
+            if let Err(e) = mail_accounts::legacy::purge_local_notification_history(
+                &dir.join(LEGACY_NOTIFICATION_HISTORY_FILE),
+            ) {
+                eprintln!("旧通知履歴を削除できません: {e}");
             }
 
             if let Err(e) = app
@@ -73,6 +75,9 @@ pub fn run() {
             delete_mail_account,
             load_mail_settings,
             save_mail_settings,
+            load_mail_history,
+            delete_mail_history,
+            clear_mail_history,
             load_notification_config,
             save_notification_settings,
             set_node_admin_key,
@@ -80,8 +85,6 @@ pub fn run() {
             delete_notification_config,
             refresh_notification_connections,
             get_notification_connections,
-            load_notification_history,
-            clear_notification_history,
             send_test_notification
         ])
         .run(tauri::generate_context!())

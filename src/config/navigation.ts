@@ -1,4 +1,4 @@
-﻿import { Key, LayoutDashboard, Mail, type LucideIcon } from 'lucide-react';
+﻿import { History, Key, LayoutDashboard, Mail, type LucideIcon } from 'lucide-react';
 
 export type NavPosition = 'top' | 'bottom';
 
@@ -24,6 +24,12 @@ export const NAV_ITEMS: NavItemConfig[] = [
     id: 'email-notification-settings',
     label: 'メールの通知設定',
     icon: Mail,
+    group: 'メール',
+  },
+  {
+    id: 'mail-history',
+    label: '通知履歴',
+    icon: History,
     group: 'メール',
     searchable: true,
   },

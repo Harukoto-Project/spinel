@@ -5,6 +5,7 @@ import type { MailService } from '../mail/MailService.js';
 import type { NotificationHub } from '../notifications/NotificationHub.js';
 import { registerHealthRoute } from './health.js';
 import { registerMailAccountsRoute } from './mailAccounts.js';
+import { registerMailHistoryRoute } from './mailHistory.js';
 import { registerMailSettingsRoute } from './mailSettings.js';
 import { registerNotificationSocketRoute } from './notificationSocket.js';
 import { registerNotificationTestRoute } from './notificationTest.js';
@@ -24,4 +25,5 @@ export const registerRoutes = (app: FastifyInstance, deps: RouteDeps): void => {
   registerNotificationSocketRoute(app, deps);
   registerMailAccountsRoute(app, deps);
   registerMailSettingsRoute(app, deps);
+  registerMailHistoryRoute(app, deps);
 };

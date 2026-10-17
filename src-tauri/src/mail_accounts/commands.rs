@@ -9,7 +9,7 @@ use crate::notifications::api::ApiError;
 use crate::notifications::model::admin_key_secret;
 use crate::secrets;
 
-fn resolve_node(nodes: &NodeStore, node_id: &str) -> Result<NodeTarget, String> {
+pub(crate) fn resolve_node(nodes: &NodeStore, node_id: &str) -> Result<NodeTarget, String> {
     let node = nodes
         .load()?
         .into_iter()
