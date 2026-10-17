@@ -1,4 +1,4 @@
-import { NodeDetailRow } from '@/components/nodes/NodeDetailRow';
+import { DetailRow } from '@/components/form/DetailRow';
 import { NodeStatusBadge } from '@/components/nodes/NodeStatusBadge';
 import { EMPTY_VALUE, formatDateTime, formatPing } from '@/components/nodes/nodeFormat';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -22,19 +22,15 @@ export function NodeDetailsDialog({ node, onOpenChange }: NodeDetailsDialogProps
               <DialogDescription>{node.address}</DialogDescription>
             </DialogHeader>
             <dl className="divide-y">
-              <NodeDetailRow label="ステータス">
+              <DetailRow label="ステータス">
                 <NodeStatusBadge status={node.status} />
-              </NodeDetailRow>
-              <NodeDetailRow label="OS">{health?.os.name ?? EMPTY_VALUE}</NodeDetailRow>
-              <NodeDetailRow label="バージョン">{health?.version ?? EMPTY_VALUE}</NodeDetailRow>
-              <NodeDetailRow label="起動時刻">
-                {formatDateTime(health?.startedAt ?? null, { seconds: true })}
-              </NodeDetailRow>
-              <NodeDetailRow label="最終更新">
-                {formatDateTime(health?.updatedAt ?? null, { seconds: true })}
-              </NodeDetailRow>
-              <NodeDetailRow label="Ping">{formatPing(node.pingMs)}</NodeDetailRow>
-              <NodeDetailRow label="最終接続">{formatDateTime(node.lastSeenAt, { seconds: true })}</NodeDetailRow>
+              </DetailRow>
+              <DetailRow label="OS">{health?.os.name ?? EMPTY_VALUE}</DetailRow>
+              <DetailRow label="バージョン">{health?.version ?? EMPTY_VALUE}</DetailRow>
+              <DetailRow label="起動時刻">{formatDateTime(health?.startedAt ?? null, { seconds: true })}</DetailRow>
+              <DetailRow label="最終更新">{formatDateTime(health?.updatedAt ?? null, { seconds: true })}</DetailRow>
+              <DetailRow label="Ping">{formatPing(node.pingMs)}</DetailRow>
+              <DetailRow label="最終接続">{formatDateTime(node.lastSeenAt, { seconds: true })}</DetailRow>
             </dl>
           </>
         )}

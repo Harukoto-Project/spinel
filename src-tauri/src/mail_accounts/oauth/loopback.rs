@@ -22,7 +22,7 @@ pub struct LoopbackServer {
 }
 
 impl LoopbackServer {
-    pub async fn bind() -> Result<Self, String> {
+    pub async fn bind(redirect_host: &str) -> Result<Self, String> {
         let listener = TcpListener::bind(("127.0.0.1", 0))
             .await
             .map_err(|e| format!("認証用のローカルポートを開けません: {e}"))?;
@@ -32,7 +32,7 @@ impl LoopbackServer {
             .port();
         Ok(Self {
             listener,
-            redirect_uri: format!("http://127.0.0.1:{port}"),
+            redirect_uri: format!("http://{redirect_host}:{port}"),
         })
     }
 

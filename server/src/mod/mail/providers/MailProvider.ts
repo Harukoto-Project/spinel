@@ -9,6 +9,8 @@ export interface FetchResult {
 
 export interface MailProvider {
   readonly id: MailProviderId;
+  readonly label: string;
+  readonly requiredEnv: string;
   readonly configured: boolean;
   initCursor(account: ProviderAccount): Promise<string>;
   fetchNew(account: ProviderAccount, cursor: string): Promise<FetchResult>;

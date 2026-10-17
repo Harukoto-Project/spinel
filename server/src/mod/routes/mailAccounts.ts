@@ -15,7 +15,7 @@ const connectSchema = {
       provider: { type: 'string', enum: [...MAIL_PROVIDER_IDS] },
       email: { type: 'string', minLength: 3, maxLength: 320 },
       name: { type: 'string', minLength: 1, maxLength: 200 },
-      refreshToken: { type: 'string', minLength: 1, maxLength: 4096 },
+      refreshToken: { type: 'string', minLength: 1, maxLength: 8192 },
     },
     additionalProperties: false,
   },

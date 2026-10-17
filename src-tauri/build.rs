@@ -1,6 +1,6 @@
 use std::fs;
 
-const EMBEDDED_ENV_KEYS: [&str; 2] = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"];
+const EMBEDDED_ENV_KEYS: [&str; 3] = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "OUTLOOK_CLIENT_ID"];
 
 fn main() {
     println!("cargo:rerun-if-changed=.env");

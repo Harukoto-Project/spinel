@@ -25,11 +25,14 @@ export class MailService {
 
   public async connectAccount(input: ConnectMailAccountInput): Promise<MailAccountView[]> {
     const provider = this.providers.get(input.provider);
-    if (!provider || !provider.configured) {
+    if (!provider) {
+      throw new MailError(400, 'unknown_provider', 'このノードは指定されたメールサービスに対応していません');
+    }
+    if (!provider.configured) {
       throw new MailError(
         503,
         'provider_not_configured',
-        'このノードは Google アカウントに対応していません(GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET が未設定です)',
+        `このノードは ${provider.label} アカウントに対応していません(${provider.requiredEnv} が未設定です)`,
       );
     }
 

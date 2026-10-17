@@ -17,6 +17,8 @@ import { MailService } from './mail/MailService.js';
 import { ProcessedStore } from './mail/ProcessedStore.js';
 import { GmailProvider } from './mail/providers/google/GmailProvider.js';
 import { GoogleAccessTokens } from './mail/providers/google/GoogleAccessTokens.js';
+import { OutlookAccessTokens } from './mail/providers/outlook/OutlookAccessTokens.js';
+import { OutlookProvider } from './mail/providers/outlook/OutlookProvider.js';
 import { ProviderRegistry } from './mail/providers/ProviderRegistry.js';
 import { MailSettingsStore } from './mail/settings/MailSettingsStore.js';
 import { NotificationHub } from './notifications/NotificationHub.js';
@@ -59,10 +61,28 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
   const processed = new ProcessedStore(dataPath(MAIL_PROCESSED_FILE));
   await Promise.all([accounts.load(), settings.load(), processed.load()]);
 
-  const googleTokens = config.google ? new GoogleAccessTokens(config.google.clientId, config.google.clientSecret) : null;
-  const providers = new ProviderRegistry([new GmailProvider(googleTokens, logger)]);
+  const googleTokens = config.google
+    ? new GoogleAccessTokens(config.google.clientId, config.google.clientSecret)
+    : null;
+  const outlookTokens = config.outlook
+    ? new OutlookAccessTokens(
+        config.outlook.clientId,
+        async (previous, next) => {
+          const account = accounts.list().find((candidate) => candidate.refreshToken === previous);
+          if (account) await accounts.update(account.id, { refreshToken: next });
+        },
+        logger,
+      )
+    : null;
+  const providers = new ProviderRegistry([
+    new GmailProvider(googleTokens, logger),
+    new OutlookProvider(outlookTokens, logger),
+  ]);
   if (googleTokens === null) {
     logger.warn('GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET が未設定のため、Google アカウントは利用できません');
+  }
+  if (outlookTokens === null) {
+    logger.warn('OUTLOOK_CLIENT_ID が未設定のため、Outlook アカウントは利用できません');
   }
   for (const key of REQUIRED_AI_KEYS) {
     if (!process.env[key]) logger.warn(`${key} が未設定のため、メールの判定に失敗します`);

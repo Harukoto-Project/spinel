@@ -1,6 +1,6 @@
-export type MailProviderId = 'google';
+export type MailProviderId = 'google' | 'outlook';
 
-export const MAIL_PROVIDER_IDS: readonly MailProviderId[] = ['google'];
+export const MAIL_PROVIDER_IDS: readonly MailProviderId[] = ['google', 'outlook'];
 
 export interface Mail {
   id: string;

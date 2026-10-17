@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 import { useTable, type ColumnDef, type RowData } from '@tanstack/react-table';
 import { DataTableSkeletonRows } from '@/components/data-table/DataTableSkeletonRows';
 import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
@@ -12,6 +12,7 @@ type DataTableProps<TData extends RowData> = {
   loading?: boolean;
   loadingRowCount?: number;
   renderRowContextMenu?: (data: TData) => ReactNode;
+  onRowClick?: (data: TData) => void;
 };
 
 export function DataTable<TData extends RowData>({
@@ -21,6 +22,7 @@ export function DataTable<TData extends RowData>({
   loading = false,
   loadingRowCount = 4,
   renderRowContextMenu,
+  onRowClick,
 }: DataTableProps<TData>) {
   const table = useTable({
     features,
@@ -53,9 +55,22 @@ export function DataTable<TData extends RowData>({
                 </TableCell>
               ));
 
+              const clickProps = onRowClick
+                ? {
+                    tabIndex: 0,
+                    onClick: () => onRowClick(row.original),
+                    onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
+                      if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+                        event.preventDefault();
+                        onRowClick(row.original);
+                      }
+                    },
+                  }
+                : {};
+
               if (!renderRowContextMenu) {
                 return (
-                  <TableRow className="cursor-pointer" key={row.id}>
+                  <TableRow className="cursor-pointer" key={row.id} {...clickProps}>
                     {cells}
                   </TableRow>
                 );
@@ -64,7 +79,9 @@ export function DataTable<TData extends RowData>({
               return (
                 <ContextMenu key={row.id}>
                   <ContextMenuTrigger asChild>
-                    <TableRow className="cursor-pointer select-none">{cells}</TableRow>
+                    <TableRow className="cursor-pointer select-none" {...clickProps}>
+                      {cells}
+                    </TableRow>
                   </ContextMenuTrigger>
                   {renderRowContextMenu(row.original)}
                 </ContextMenu>

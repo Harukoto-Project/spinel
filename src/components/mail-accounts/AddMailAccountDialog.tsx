@@ -1,13 +1,7 @@
 import { useState } from 'react';
 import { LoaderCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MAIL_PROVIDERS } from '@/config/mailProviders';
 import { describeError } from '@/lib/errors';
 import type { MailProviderId } from '@/types/mailAccount';

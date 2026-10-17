@@ -5,12 +5,17 @@ export interface GoogleOAuthConfig {
   clientSecret: string;
 }
 
+export interface OutlookOAuthConfig {
+  clientId: string;
+}
+
 export interface Config {
   host: string;
   port: number;
   dataDir: string;
   adminKey: string | null;
   google: GoogleOAuthConfig | null;
+  outlook: OutlookOAuthConfig | null;
   triage: TriageConfig;
 }
 
@@ -52,6 +57,11 @@ const loadGoogle = (): GoogleOAuthConfig | null => {
   return { clientId, clientSecret };
 };
 
+const loadOutlook = (): OutlookOAuthConfig | null => {
+  const clientId = optional('OUTLOOK_CLIENT_ID');
+  return clientId === null ? null : { clientId };
+};
+
 const loadTriage = (): TriageConfig => {
   const triage: TriageConfig = {
     ignoreBelow: num('IGNORE_BELOW', 0.2),
@@ -73,5 +83,6 @@ export const loadConfig = (): Config => ({
   dataDir: str('DATA_DIR', './data'),
   adminKey: optional('ADMIN_KEY'),
   google: loadGoogle(),
+  outlook: loadOutlook(),
   triage: loadTriage(),
 });

@@ -1,4 +1,4 @@
-export type MailProviderId = 'google';
+export type MailProviderId = 'google' | 'outlook';
 
 export type MailAccount = {
   id: string;

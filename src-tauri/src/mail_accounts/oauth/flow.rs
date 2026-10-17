@@ -17,7 +17,7 @@ struct TokenResponse {
 }
 
 pub async fn authorize(app: &AppHandle, config: &OAuthConfig) -> Result<OAuthGrant, String> {
-    let server = LoopbackServer::bind().await?;
+    let server = LoopbackServer::bind(config.redirect_host).await?;
     let redirect_uri = server.redirect_uri.clone();
     let pkce = pkce::generate();
     let state = pkce::random_token();

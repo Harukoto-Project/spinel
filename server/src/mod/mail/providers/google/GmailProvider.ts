@@ -2,6 +2,7 @@ import { simpleParser } from 'mailparser';
 import type { Logger } from '../../../logger.js';
 import { HttpStatusError, ProviderAuthError } from '../../errors.js';
 import type { Mail } from '../../types.js';
+import { extractErrorDetail } from '../errorDetail.js';
 import type { FetchResult, MailProvider, ProviderAccount } from '../MailProvider.js';
 import type { GoogleAccessTokens } from './GoogleAccessTokens.js';
 
@@ -11,22 +12,6 @@ const EXCLUDED_LABELS: ReadonlySet<string> = new Set(['SENT', 'DRAFT', 'TRASH'])
 const SCOPE_ERROR_PATTERN = /insufficientPermissions|ACCESS_TOKEN_SCOPE_INSUFFICIENT/;
 
 const SERVICE_DISABLED_PATTERN = /SERVICE_DISABLED|accessNotConfigured|has not been used in project/;
-const DETAIL_MAX = 300;
-
-const extractErrorDetail = (body: string): string => {
-  try {
-    const parsed: unknown = JSON.parse(body);
-    if (typeof parsed === 'object' && parsed !== null && 'error' in parsed) {
-      const error = parsed.error;
-      if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string') {
-        return error.message.slice(0, DETAIL_MAX);
-      }
-    }
-  } catch {
-    return body.slice(0, DETAIL_MAX);
-  }
-  return body.slice(0, DETAIL_MAX);
-};
 
 interface HistoryPage {
   history?: { messagesAdded?: { message: { id: string; labelIds?: string[] } }[] }[];
@@ -41,6 +26,8 @@ interface RawMessage {
 
 export class GmailProvider implements MailProvider {
   public readonly id = 'google';
+  public readonly label = 'Google';
+  public readonly requiredEnv = 'GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET';
 
   public constructor(
     private readonly tokens: GoogleAccessTokens | null,

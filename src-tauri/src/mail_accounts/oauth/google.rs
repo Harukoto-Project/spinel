@@ -40,6 +40,7 @@ pub fn config() -> Result<OAuthConfig, String> {
     Ok(OAuthConfig {
         client_id: client_id.to_string(),
         client_secret: embedded(option_env!("GOOGLE_CLIENT_SECRET")).map(str::to_string),
+        redirect_host: "127.0.0.1",
         auth_url: AUTH_URL,
         token_url: TOKEN_URL,
         userinfo_url: USERINFO_URL,

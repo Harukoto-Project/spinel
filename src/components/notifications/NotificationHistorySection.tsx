@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { DataTable } from '@/components/data-table/DataTable';
 import { ClearHistoryDialog } from '@/components/notifications/ClearHistoryDialog';
+import { NotificationDetailsDialog } from '@/components/notifications/NotificationDetailsDialog';
 import { createNotificationHistoryColumns } from '@/components/notifications/notificationHistoryColumns';
 import { filterHistory } from '@/components/notifications/notificationHistorySearch';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,8 @@ export function NotificationHistorySection({ nodes }: NotificationHistorySection
   const searching = query !== debouncedQuery;
   const { items, loading, error, clear } = useNotificationHistory();
   const [clearOpen, setClearOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = useMemo(() => items.find((item) => item.id === selectedId) ?? null, [items, selectedId]);
 
   const nodeNames = useMemo(() => new Map(nodes.map((node) => [node.id, node.name])), [nodes]);
   const columns = useMemo(() => createNotificationHistoryColumns(nodeNames), [nodeNames]);
@@ -52,6 +55,14 @@ export function NotificationHistorySection({ nodes }: NotificationHistorySection
         data={filtered}
         loading={loading || searching}
         emptyMessage={items.length === 0 ? '通知履歴がありません' : '一致する通知がありません'}
+        onRowClick={(notification) => setSelectedId(notification.id)}
+      />
+      <NotificationDetailsDialog
+        notification={selected}
+        nodeName={selected ? nodeNames.get(selected.nodeId) : undefined}
+        onOpenChange={(open) => {
+          if (!open) setSelectedId(null);
+        }}
       />
       <ClearHistoryDialog
         open={clearOpen}
