@@ -59,9 +59,7 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
   const processed = new ProcessedStore(dataPath(MAIL_PROCESSED_FILE));
   await Promise.all([accounts.load(), settings.load(), processed.load()]);
 
-  const googleTokens = config.google
-    ? new GoogleAccessTokens(config.google.clientId, config.google.clientSecret)
-    : null;
+  const googleTokens = config.google ? new GoogleAccessTokens(config.google.clientId, config.google.clientSecret) : null;
   const providers = new ProviderRegistry([new GmailProvider(googleTokens, logger)]);
   if (googleTokens === null) {
     logger.warn('GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET が未設定のため、Google アカウントは利用できません');

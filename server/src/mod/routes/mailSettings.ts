@@ -1,6 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 import { requireAdminKey } from '../auth/hooks.js';
-import { POLL_INTERVAL_SEC_MAX, POLL_INTERVAL_SEC_MIN, type MailSettings } from '../mail/types.js';
+import {
+  POLL_INTERVAL_SEC_MAX,
+  POLL_INTERVAL_SEC_MIN,
+  type MailSettings,
+} from '../mail/types.js';
 import type { RouteDeps } from './index.js';
 
 const updateSchema = {

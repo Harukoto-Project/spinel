@@ -10,6 +10,24 @@ const REQUEST_TIMEOUT_MS = 30_000;
 const EXCLUDED_LABELS: ReadonlySet<string> = new Set(['SENT', 'DRAFT', 'TRASH']);
 const SCOPE_ERROR_PATTERN = /insufficientPermissions|ACCESS_TOKEN_SCOPE_INSUFFICIENT/;
 
+const SERVICE_DISABLED_PATTERN = /SERVICE_DISABLED|accessNotConfigured|has not been used in project/;
+const DETAIL_MAX = 300;
+
+const extractErrorDetail = (body: string): string => {
+  try {
+    const parsed: unknown = JSON.parse(body);
+    if (typeof parsed === 'object' && parsed !== null && 'error' in parsed) {
+      const error = parsed.error;
+      if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string') {
+        return error.message.slice(0, DETAIL_MAX);
+      }
+    }
+  } catch {
+    return body.slice(0, DETAIL_MAX);
+  }
+  return body.slice(0, DETAIL_MAX);
+};
+
 interface HistoryPage {
   history?: { messagesAdded?: { message: { id: string; labelIds?: string[] } }[] }[];
   historyId?: string;
@@ -128,7 +146,17 @@ export class GmailProvider implements MailProvider {
             'Gmail の読み取り権限が許可されていません。再接続して、すべての権限を許可してください',
           );
         }
-        throw new HttpStatusError(response.status, `Gmail API がエラーを返しました (${response.status})`);
+        if (response.status === 403 && SERVICE_DISABLED_PATTERN.test(body)) {
+          throw new HttpStatusError(
+            response.status,
+            'Google Cloud プロジェクトで Gmail API が有効になっていません。Google Cloud Console の「API とサービス」で Gmail API を有効にしてください',
+          );
+        }
+        const detail = extractErrorDetail(body);
+        throw new HttpStatusError(
+          response.status,
+          `Gmail API がエラーを返しました (${response.status})${detail ? `: ${detail}` : ''}`,
+        );
       }
       return (await response.json()) as T;
     }
