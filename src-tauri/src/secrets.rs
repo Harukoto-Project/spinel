@@ -12,6 +12,14 @@ pub fn set(key: &str, value: &str) -> Result<(), String> {
         .map_err(|e| format!("資格情報ストアに保存できません: {}", e))
 }
 
+pub fn get(key: &str) -> Result<Option<String>, String> {
+    match entry(key)?.get_password() {
+        Ok(value) => Ok(Some(value)),
+        Err(Error::NoEntry) => Ok(None),
+        Err(e) => Err(format!("資格情報ストアを読み取れません: {}", e)),
+    }
+}
+
 pub fn exists(key: &str) -> Result<bool, String> {
     match entry(key)?.get_password() {
         Ok(_) => Ok(true),
