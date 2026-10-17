@@ -1,5 +1,6 @@
 import { useId, useState, type FormEvent } from 'react';
 import { LoaderCircle } from 'lucide-react';
+import { SecretInput } from '@/components/form/SecretInput';
 import { Button } from '@/components/ui/button';
 import { DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -14,8 +15,10 @@ type AddNodeFormProps = {
 export function AddNodeForm({ onSubmit, onCancel }: AddNodeFormProps) {
   const nameId = useId();
   const addressId = useId();
+  const adminKeyId = useId();
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
+  const [adminKey, setAdminKey] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +31,7 @@ export function AddNodeForm({ onSubmit, onCancel }: AddNodeFormProps) {
     setSubmitting(true);
     setError(null);
     try {
-      await onSubmit({ name, address });
+      await onSubmit({ name, address, adminKey });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'ノードを追加できませんでした');
       setSubmitting(false);
@@ -62,6 +65,18 @@ export function AddNodeForm({ onSubmit, onCancel }: AddNodeFormProps) {
           spellCheck={false}
           aria-invalid={error !== null}
         />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={adminKeyId}>管理キー(任意)</Label>
+        <SecretInput
+          id={adminKeyId}
+          value={adminKey}
+          onChange={(event) => setAdminKey(event.target.value)}
+          placeholder="spn_..."
+        />
+        <p className="text-sm text-muted-foreground">
+          通知を受け取るための認証に使います。サーバーの初回起動時にコンソールへ表示されます。あとから設定することもできます。
+        </p>
       </div>
       {error && (
         <p role="alert" className="text-sm text-destructive">
