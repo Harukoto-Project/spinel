@@ -1,8 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import type { AuthService } from '../auth/AuthService.js';
 import type { HealthService } from '../health/HealthService.js';
+import type { MailService } from '../mail/MailService.js';
 import type { NotificationHub } from '../notifications/NotificationHub.js';
 import { registerHealthRoute } from './health.js';
+import { registerMailAccountsRoute } from './mailAccounts.js';
+import { registerMailSettingsRoute } from './mailSettings.js';
 import { registerNotificationSocketRoute } from './notificationSocket.js';
 import { registerNotificationTestRoute } from './notificationTest.js';
 import { registerNotificationTokenRoute } from './notificationToken.js';
@@ -11,6 +14,7 @@ export interface RouteDeps {
   health: HealthService;
   auth: AuthService;
   hub: NotificationHub;
+  mail: MailService;
 }
 
 export const registerRoutes = (app: FastifyInstance, deps: RouteDeps): void => {
@@ -18,4 +22,6 @@ export const registerRoutes = (app: FastifyInstance, deps: RouteDeps): void => {
   registerNotificationTokenRoute(app, deps);
   registerNotificationTestRoute(app, deps);
   registerNotificationSocketRoute(app, deps);
+  registerMailAccountsRoute(app, deps);
+  registerMailSettingsRoute(app, deps);
 };

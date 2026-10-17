@@ -3,7 +3,7 @@ import type { DataTableFeatures } from '@/components/data-table/dataTableFeature
 import { MailAccountActionsMenu } from '@/components/mail-accounts/MailAccountActionsMenu';
 import { MailAccountStatusBadge } from '@/components/mail-accounts/MailAccountStatusBadge';
 import type { MailAccountActionHandlers } from '@/components/mail-accounts/mailAccountActions';
-import { formatDateTime } from '@/components/nodes/nodeFormat';
+import { EMPTY_VALUE, formatDateTime } from '@/components/nodes/nodeFormat';
 import { Badge } from '@/components/ui/badge';
 import { getMailProviderLabel } from '@/config/mailProviders';
 import type { MailAccount } from '@/types/mailAccount';
@@ -26,13 +26,32 @@ export function createMailAccountColumns(handlers: MailAccountActionHandlers) {
     }),
     columnHelper.accessor('connected', {
       header: '状態',
-      cell: ({ row }) => <MailAccountStatusBadge connected={row.original.connected} />,
+      cell: ({ row }) => (
+        <div className="flex flex-col items-start gap-1">
+          <MailAccountStatusBadge connected={row.original.connected} />
+          {row.original.lastError && (
+            <span className="max-w-72 truncate text-xs text-destructive" title={row.original.lastError}>
+              {row.original.lastError}
+            </span>
+          )}
+        </div>
+      ),
     }),
     columnHelper.accessor('connectedAt', {
       header: '接続日時',
       cell: ({ row }) => (
         <span className="text-muted-foreground">
           {formatDateTime(new Date(row.original.connectedAt).toISOString())}
+        </span>
+      ),
+    }),
+    columnHelper.accessor('lastCheckedAt', {
+      header: '最終確認',
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {row.original.lastCheckedAt === null
+            ? EMPTY_VALUE
+            : formatDateTime(new Date(row.original.lastCheckedAt).toISOString())}
         </span>
       ),
     }),

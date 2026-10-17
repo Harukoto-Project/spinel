@@ -45,7 +45,9 @@ export function AddMailAccountDialog({ open, onOpenChange, onConnect }: AddMailA
       <DialogContent>
         <DialogHeader>
           <DialogTitle>メールアカウントを追加</DialogTitle>
-          <DialogDescription>追加するアカウントのプロバイダーを選んでください。</DialogDescription>
+          <DialogDescription>
+            追加するアカウントのプロバイダーを選んでください。認証情報はこのノードに送信され、追加後に届いた新着メールだけをノードが確認します。
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2">
           {MAIL_PROVIDERS.map((provider) => (

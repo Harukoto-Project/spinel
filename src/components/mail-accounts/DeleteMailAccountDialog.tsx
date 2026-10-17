@@ -24,7 +24,7 @@ export function DeleteMailAccountDialog({ account, onOpenChange, onConfirm }: De
             <DialogHeader>
               <DialogTitle>アカウントを削除しますか?</DialogTitle>
               <DialogDescription>
-                「{account.name}」({account.email})を一覧から外し、保存済みの認証情報を削除します。Google
+                「{account.name}」({account.email})の新着メール確認を止め、ノードに保存されている認証情報を削除します。Google
                 アカウント側のアクセス許可は、Google アカウントの設定から解除できます。
               </DialogDescription>
             </DialogHeader>

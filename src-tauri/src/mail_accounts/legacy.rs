@@ -17,6 +17,10 @@ struct LegacyAccount {
     id: String,
 }
 
+fn remove_file(path: &Path) -> Result<(), String> {
+    fs::remove_file(path).map_err(|e| format!("{} を削除できません: {}", path.display(), e))
+}
+
 pub fn purge_imap_data(path: &Path) -> Result<(), String> {
     if !path.exists() {
         return Ok(());
@@ -28,5 +32,19 @@ pub fn purge_imap_data(path: &Path) -> Result<(), String> {
             secrets::delete(&format!("imap:{}:{}", node_id, account.id))?;
         }
     }
-    fs::remove_file(path).map_err(|e| format!("{} を削除できません: {}", path.display(), e))
+    remove_file(path)
+}
+
+pub fn purge_local_mail_accounts(path: &Path) -> Result<(), String> {
+    if !path.exists() {
+        return Ok(());
+    }
+
+    let all: BTreeMap<String, Vec<LegacyAccount>> = json_file::read(path)?;
+    for (node_id, accounts) in &all {
+        for account in accounts {
+            secrets::delete(&format!("mail-account:{}:{}", node_id, account.id))?;
+        }
+    }
+    remove_file(path)
 }

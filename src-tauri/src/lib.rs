@@ -8,9 +8,9 @@ mod tray;
 use tauri::Manager;
 
 use mail_accounts::commands::{
-    connect_mail_account, delete_mail_account, delete_mail_accounts, load_mail_accounts,
+    connect_mail_account, delete_mail_account, load_mail_accounts, load_mail_settings,
+    save_mail_settings,
 };
-use mail_accounts::store::MailAccountStore;
 use nodes::commands::{load_nodes, save_nodes};
 use nodes::store::NodeStore;
 use notifications::commands::{
@@ -24,7 +24,7 @@ use notifications::manager::NotificationManager;
 use notifications::settings_store::NotificationSettingsStore;
 
 const NODES_FILE: &str = "nodes.json";
-const MAIL_ACCOUNTS_FILE: &str = "mail_accounts.json";
+const LEGACY_MAIL_ACCOUNTS_FILE: &str = "mail_accounts.json";
 const LEGACY_IMAP_FILE: &str = "imap.json";
 const NOTIFICATION_SETTINGS_FILE: &str = "notification_settings.json";
 const NOTIFICATION_HISTORY_FILE: &str = "notification_history.json";
@@ -38,7 +38,6 @@ pub fn run() {
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             app.manage(NodeStore::new(dir.join(NODES_FILE)));
-            app.manage(MailAccountStore::new(dir.join(MAIL_ACCOUNTS_FILE)));
             app.manage(NotificationSettingsStore::new(
                 dir.join(NOTIFICATION_SETTINGS_FILE),
             ));
@@ -51,6 +50,11 @@ pub fn run() {
 
             if let Err(e) = mail_accounts::legacy::purge_imap_data(&dir.join(LEGACY_IMAP_FILE)) {
                 eprintln!("旧IMAP設定を削除できません: {e}");
+            }
+            if let Err(e) = mail_accounts::legacy::purge_local_mail_accounts(
+                &dir.join(LEGACY_MAIL_ACCOUNTS_FILE),
+            ) {
+                eprintln!("旧メールアカウント設定を削除できません: {e}");
             }
 
             if let Err(e) = app
@@ -67,7 +71,8 @@ pub fn run() {
             load_mail_accounts,
             connect_mail_account,
             delete_mail_account,
-            delete_mail_accounts,
+            load_mail_settings,
+            save_mail_settings,
             load_notification_config,
             save_notification_settings,
             set_node_admin_key,
