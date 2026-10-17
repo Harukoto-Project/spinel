@@ -2,6 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchNodeHealth, normalizeNodeAddress, probeNode } from '@/services/nodeApi';
 import { deleteImapConfig } from '@/services/imapStorage';
 import { loadStoredNodes, saveStoredNodes } from '@/services/nodeStorage';
+import {
+  deleteNotificationConfig,
+  refreshNotificationConnections,
+  setNodeAdminKey,
+} from '@/services/notificationStorage';
 import { describeError } from '@/lib/errors';
 import type { NewNodeInput, NodeInfo, NodeLiveState, StoredNode } from '@/types/node';
 
@@ -22,12 +27,18 @@ export function useNodes() {
   const storedRef = useRef<StoredNode[]>([]);
   const loadedRef = useRef(false);
 
-  const commit = useCallback((next: StoredNode[]) => {
+  const commit = useCallback((next: StoredNode[]): Promise<boolean> => {
     storedRef.current = next;
     setStored(next);
-    saveStoredNodes(next).then(
-      () => setError(null),
-      (caught) => setError(`ノードの保存に失敗しました: ${describeError(caught)}`),
+    return saveStoredNodes(next).then(
+      () => {
+        setError(null);
+        return true;
+      },
+      (caught) => {
+        setError(`ノードの保存に失敗しました: ${describeError(caught)}`);
+        return false;
+      },
     );
   }, []);
 
@@ -59,7 +70,7 @@ export function useNodes() {
         return next;
       });
       if (reachedIds.size > 0) {
-        commit(storedRef.current.map((node) => (reachedIds.has(node.id) ? { ...node, lastSeenAt: now } : node)));
+        void commit(storedRef.current.map((node) => (reachedIds.has(node.id) ? { ...node, lastSeenAt: now } : node)));
       }
       setLoading(false);
     };
@@ -118,7 +129,16 @@ export function useNodes() {
         ...current,
         [node.id]: { status: 'online', health, pingMs },
       }));
-      commit([...storedRef.current, node]);
+      const saved = await commit([...storedRef.current, node]);
+      if (!saved) return;
+
+      const adminKey = input.adminKey?.trim() ?? '';
+      try {
+        if (adminKey !== '') await setNodeAdminKey(node.id, adminKey);
+        else await refreshNotificationConnections();
+      } catch (caught) {
+        setError(`通知の接続を設定できませんでした: ${describeError(caught)}`);
+      }
     },
     [commit],
   );
@@ -129,9 +149,12 @@ export function useNodes() {
         const { [id]: _removed, ...rest } = current;
         return rest;
       });
-      commit(storedRef.current.filter((node) => node.id !== id));
+      void commit(storedRef.current.filter((node) => node.id !== id));
       deleteImapConfig(id).catch((caught) =>
         setError(`ノードの IMAP 設定を削除できませんでした: ${describeError(caught)}`),
+      );
+      deleteNotificationConfig(id).catch((caught) =>
+        setError(`ノードの通知設定を削除できませんでした: ${describeError(caught)}`),
       );
     },
     [commit],

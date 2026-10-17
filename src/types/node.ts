@@ -33,4 +33,5 @@ export type NodeInfo = StoredNode & NodeLiveState;
 export type NewNodeInput = {
   name: string;
   address: string;
+  adminKey?: string;
 };

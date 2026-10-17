@@ -1,4 +1,4 @@
-﻿import { Brain, Key, LayoutDashboard, Mail, type LucideIcon } from 'lucide-react';
+﻿import { Key, LayoutDashboard, Mail, type LucideIcon } from 'lucide-react';
 
 export type NavPosition = 'top' | 'bottom';
 
@@ -39,14 +39,6 @@ export const NAV_ITEMS: NavItemConfig[] = [
     label: 'APIキーの設定',
     icon: Key,
     group: '設定',
-    position: 'bottom',
-  },
-  {
-    id: 'ai-model-settings',
-    label: 'AIモデルの設定',
-    icon: Brain,
-    group: '設定',
-    searchable: true,
     position: 'bottom',
   },
 ];

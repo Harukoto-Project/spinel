@@ -4,10 +4,12 @@ import { DEFAULT_NAV_ID } from '@/config/navigation';
 import { NodesProvider } from '@/contexts/NodesContext';
 import { ApiSettingsPage } from '@/pages/ApiSettingsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { EmailNotificationSettingsPage } from '@/pages/EmailNotificationSettingsPage';
 import { ImapSettingsPage } from '@/pages/ImapSettingsPage';
 
 const PAGES: Record<string, ReactNode> = {
   dashboard: <DashboardPage />,
+  'email-notification-settings': <EmailNotificationSettingsPage />,
   'api-settings': <ApiSettingsPage />,
   'imap-settings': <ImapSettingsPage />,
 };
