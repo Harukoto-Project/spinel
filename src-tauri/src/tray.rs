@@ -2,11 +2,13 @@ use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Manager, Window, WindowEvent};
 
+use crate::app_settings::store::AppSettingsStore;
+
 const MAIN_WINDOW: &str = "main";
 const MENU_SHOW: &str = "show";
 const MENU_QUIT: &str = "quit";
 
-fn show_main_window(app: &AppHandle) {
+pub fn show_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
         let _ = window.unminimize();
         let _ = window.show();
@@ -52,7 +54,18 @@ pub fn handle_window_event(window: &Window, event: &WindowEvent) {
         return;
     }
     if let WindowEvent::CloseRequested { api, .. } = event {
-        api.prevent_close();
-        let _ = window.hide();
+        let close_to_tray = window
+            .app_handle()
+            .state::<AppSettingsStore>()
+            .load()
+            .unwrap_or_default()
+            .close_to_tray;
+
+        if close_to_tray {
+            api.prevent_close();
+            let _ = window.hide();
+        } else {
+            window.app_handle().exit(0);
+        }
     }
 }

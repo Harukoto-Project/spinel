@@ -1,4 +1,4 @@
-﻿import { History, Key, LayoutDashboard, Mail, type LucideIcon } from 'lucide-react';
+﻿import { History, Key, LayoutDashboard, Mail, Settings, type LucideIcon } from 'lucide-react';
 
 export type NavPosition = 'top' | 'bottom';
 
@@ -47,6 +47,13 @@ export const NAV_ITEMS: NavItemConfig[] = [
     group: '設定',
     position: 'bottom',
   },
+  {
+    id: 'settings',
+    label: '設定',
+    icon: Settings,
+    group: '設定',
+    position: 'bottom',
+  }
 ];
 
 export const DEFAULT_NAV_ID = NAV_ITEMS[0].id;

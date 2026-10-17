@@ -1,3 +1,4 @@
+mod app_settings;
 mod json_file;
 mod mail_accounts;
 mod mail_history;
@@ -8,6 +9,8 @@ mod tray;
 
 use tauri::Manager;
 
+use app_settings::commands::{load_app_settings, save_app_settings};
+use app_settings::store::AppSettingsStore;
 use mail_accounts::commands::{
     connect_mail_account, delete_mail_account, load_mail_accounts, load_mail_settings,
     save_mail_settings,
@@ -28,12 +31,17 @@ const LEGACY_MAIL_ACCOUNTS_FILE: &str = "mail_accounts.json";
 const LEGACY_IMAP_FILE: &str = "imap.json";
 const LEGACY_NOTIFICATION_HISTORY_FILE: &str = "notification_history.json";
 const NOTIFICATION_SETTINGS_FILE: &str = "notification_settings.json";
+const APP_SETTINGS_FILE: &str = "app_settings.json";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None,
+        ))
         .on_window_event(tray::handle_window_event)
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
@@ -42,8 +50,26 @@ pub fn run() {
                 dir.join(NOTIFICATION_SETTINGS_FILE),
             ));
             app.manage(NotificationManager::new());
+            app.manage(AppSettingsStore::new(dir.join(APP_SETTINGS_FILE)));
 
             tray::setup(app.handle())?;
+
+            let settings = app
+                .state::<AppSettingsStore>()
+                .load()
+                .unwrap_or_else(|e| {
+                    eprintln!("アプリ設定を読み込めません(既定値を使用します): {e}");
+                    Default::default()
+                });
+            if !settings.start_minimized {
+                tray::show_main_window(app.handle());
+            }
+            if !cfg!(debug_assertions) {
+                if let Err(e) = app_settings::autostart::apply(app.handle(), settings.launch_at_login)
+                {
+                    eprintln!("{e}");
+                }
+            }
 
             if let Err(e) = mail_accounts::legacy::purge_imap_data(&dir.join(LEGACY_IMAP_FILE)) {
                 eprintln!("旧IMAP設定を削除できません: {e}");
@@ -70,6 +96,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             load_nodes,
             save_nodes,
+            load_app_settings,
+            save_app_settings,
             load_mail_accounts,
             connect_mail_account,
             delete_mail_account,
