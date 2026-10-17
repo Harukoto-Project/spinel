@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchNodeHealth, normalizeNodeAddress, probeNode } from '@/services/nodeApi';
-import { describeStorageError, loadStoredNodes, saveStoredNodes } from '@/services/nodeStorage';
+import { deleteImapConfig } from '@/services/imapStorage';
+import { loadStoredNodes, saveStoredNodes } from '@/services/nodeStorage';
+import { describeError } from '@/lib/errors';
 import type { NewNodeInput, NodeInfo, NodeLiveState, StoredNode } from '@/types/node';
 
 export const NODE_POLL_INTERVAL_MS = 30_000;
@@ -14,6 +16,7 @@ const INITIAL_LIVE_STATE: NodeLiveState = {
 export function useNodes() {
   const [stored, setStored] = useState<StoredNode[]>([]);
   const [live, setLive] = useState<Record<string, NodeLiveState>>({});
+  const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const storedRef = useRef<StoredNode[]>([]);
@@ -24,7 +27,7 @@ export function useNodes() {
     setStored(next);
     saveStoredNodes(next).then(
       () => setError(null),
-      (caught) => setError(`ノードの保存に失敗しました: ${describeStorageError(caught)}`),
+      (caught) => setError(`ノードの保存に失敗しました: ${describeError(caught)}`),
     );
   }, []);
 
@@ -68,9 +71,11 @@ export function useNodes() {
         storedRef.current = nodes;
         loadedRef.current = true;
         setStored(nodes);
+        setLoaded(true);
       } catch (caught) {
         if (cancelled) return;
-        setError(`ノードの読み込みに失敗しました: ${describeStorageError(caught)}`);
+        setError(`ノードの読み込みに失敗しました: ${describeError(caught)}`);
+        setLoaded(true);
         setLoading(false);
         return;
       }
@@ -125,6 +130,9 @@ export function useNodes() {
         return rest;
       });
       commit(storedRef.current.filter((node) => node.id !== id));
+      deleteImapConfig(id).catch((caught) =>
+        setError(`ノードの IMAP 設定を削除できませんでした: ${describeError(caught)}`),
+      );
     },
     [commit],
   );
@@ -138,5 +146,5 @@ export function useNodes() {
     [stored, live],
   );
 
-  return { nodes, loading, error, addNode, removeNode };
+  return { nodes, loaded, loading, error, addNode, removeNode };
 }

@@ -8,7 +8,3 @@ export function loadStoredNodes(): Promise<StoredNode[]> {
 export function saveStoredNodes(nodes: StoredNode[]): Promise<void> {
   return invoke('save_nodes', { nodes });
 }
-
-export function describeStorageError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}

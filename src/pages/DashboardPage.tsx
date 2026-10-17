@@ -1,9 +1,9 @@
 import { PageHeader } from '@/components/layout/PageHeader';
 import { NodesSection } from '@/components/nodes/NodesSection';
-import { useNodes } from '@/hooks/use-nodes';
+import { useNodesContext } from '@/contexts/NodesContext';
 
 export function DashboardPage() {
-  const { nodes, loading, error, addNode, removeNode } = useNodes();
+  const { nodes, loading, error, addNode, removeNode } = useNodesContext();
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8">

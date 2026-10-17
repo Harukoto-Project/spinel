@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent } from 'react';
-import { SecretInput } from '@/components/api-keys/SecretInput';
+import { SecretInput } from '@/components/form/SecretInput';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
