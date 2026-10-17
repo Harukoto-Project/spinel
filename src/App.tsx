@@ -5,13 +5,13 @@ import { NodesProvider } from '@/contexts/NodesContext';
 import { ApiSettingsPage } from '@/pages/ApiSettingsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { EmailNotificationSettingsPage } from '@/pages/EmailNotificationSettingsPage';
-import { ImapSettingsPage } from '@/pages/ImapSettingsPage';
+import { MailAccountsPage } from '@/pages/MailAccountsPage';
 
 const PAGES: Record<string, ReactNode> = {
   dashboard: <DashboardPage />,
   'email-notification-settings': <EmailNotificationSettingsPage />,
   'api-settings': <ApiSettingsPage />,
-  'imap-settings': <ImapSettingsPage />,
+  'mail-accounts': <MailAccountsPage />,
 };
 
 function App() {

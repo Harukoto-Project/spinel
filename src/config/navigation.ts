@@ -28,8 +28,8 @@ export const NAV_ITEMS: NavItemConfig[] = [
     searchable: true,
   },
   {
-    id: 'imap-settings',
-    label: 'IMAPの設定',
+    id: 'mail-accounts',
+    label: 'メールアカウント',
     icon: Mail,
     group: '設定',
     position: 'bottom',

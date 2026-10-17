@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { MoreHorizontal } from 'lucide-react';
-import { IMAP_ACCOUNT_ACTIONS, type ImapAccountActionHandlers } from '@/components/imap/imapAccountActions';
+import { MAIL_ACCOUNT_ACTIONS, type MailAccountActionHandlers } from '@/components/mail-accounts/mailAccountActions';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,14 +10,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { ImapAccount } from '@/types/imap';
+import type { MailAccount } from '@/types/mailAccount';
 
-type ImapAccountActionsMenuProps = {
-  account: ImapAccount;
-  handlers: ImapAccountActionHandlers;
+type MailAccountActionsMenuProps = {
+  account: MailAccount;
+  handlers: MailAccountActionHandlers;
 };
 
-export function ImapAccountActionsMenu({ account, handlers }: ImapAccountActionsMenuProps) {
+export function MailAccountActionsMenu({ account, handlers }: MailAccountActionsMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -28,7 +28,7 @@ export function ImapAccountActionsMenu({ account, handlers }: ImapAccountActions
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>操作</DropdownMenuLabel>
-        {IMAP_ACCOUNT_ACTIONS.map((action) => (
+        {MAIL_ACCOUNT_ACTIONS.map((action) => (
           <Fragment key={action.id}>
             {action.separatorBefore && <DropdownMenuSeparator />}
             <DropdownMenuItem

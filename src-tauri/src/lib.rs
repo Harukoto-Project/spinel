@@ -1,5 +1,5 @@
-mod imap;
 mod json_file;
+mod mail_accounts;
 mod nodes;
 mod notifications;
 mod secrets;
@@ -7,11 +7,10 @@ mod tray;
 
 use tauri::Manager;
 
-use imap::commands::{
-    delete_imap_account, delete_imap_config, load_imap_config, save_imap_account,
-    save_imap_settings,
+use mail_accounts::commands::{
+    connect_mail_account, delete_mail_account, delete_mail_accounts, load_mail_accounts,
 };
-use imap::store::ImapStore;
+use mail_accounts::store::MailAccountStore;
 use nodes::commands::{load_nodes, save_nodes};
 use nodes::store::NodeStore;
 use notifications::commands::{
@@ -25,7 +24,8 @@ use notifications::manager::NotificationManager;
 use notifications::settings_store::NotificationSettingsStore;
 
 const NODES_FILE: &str = "nodes.json";
-const IMAP_FILE: &str = "imap.json";
+const MAIL_ACCOUNTS_FILE: &str = "mail_accounts.json";
+const LEGACY_IMAP_FILE: &str = "imap.json";
 const NOTIFICATION_SETTINGS_FILE: &str = "notification_settings.json";
 const NOTIFICATION_HISTORY_FILE: &str = "notification_history.json";
 
@@ -38,7 +38,7 @@ pub fn run() {
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             app.manage(NodeStore::new(dir.join(NODES_FILE)));
-            app.manage(ImapStore::new(dir.join(IMAP_FILE)));
+            app.manage(MailAccountStore::new(dir.join(MAIL_ACCOUNTS_FILE)));
             app.manage(NotificationSettingsStore::new(
                 dir.join(NOTIFICATION_SETTINGS_FILE),
             ));
@@ -48,6 +48,10 @@ pub fn run() {
             app.manage(NotificationManager::new());
 
             tray::setup(app.handle())?;
+
+            if let Err(e) = mail_accounts::legacy::purge_imap_data(&dir.join(LEGACY_IMAP_FILE)) {
+                eprintln!("旧IMAP設定を削除できません: {e}");
+            }
 
             if let Err(e) = app
                 .state::<NotificationManager>()
@@ -60,11 +64,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             load_nodes,
             save_nodes,
-            load_imap_config,
-            save_imap_account,
-            delete_imap_account,
-            save_imap_settings,
-            delete_imap_config,
+            load_mail_accounts,
+            connect_mail_account,
+            delete_mail_account,
+            delete_mail_accounts,
             load_notification_config,
             save_notification_settings,
             set_node_admin_key,

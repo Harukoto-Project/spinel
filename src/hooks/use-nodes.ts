@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchNodeHealth, normalizeNodeAddress, probeNode } from '@/services/nodeApi';
-import { deleteImapConfig } from '@/services/imapStorage';
+import { deleteMailAccounts } from '@/services/mailAccountStorage';
 import { loadStoredNodes, saveStoredNodes } from '@/services/nodeStorage';
 import {
   deleteNotificationConfig,
@@ -150,8 +150,8 @@ export function useNodes() {
         return rest;
       });
       void commit(storedRef.current.filter((node) => node.id !== id));
-      deleteImapConfig(id).catch((caught) =>
-        setError(`ノードの IMAP 設定を削除できませんでした: ${describeError(caught)}`),
+      deleteMailAccounts(id).catch((caught) =>
+        setError(`ノードのメールアカウントを削除できませんでした: ${describeError(caught)}`),
       );
       deleteNotificationConfig(id).catch((caught) =>
         setError(`ノードの通知設定を削除できませんでした: ${describeError(caught)}`),

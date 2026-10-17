@@ -7,15 +7,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import type { ImapAccount } from '@/types/imap';
+import type { MailAccount } from '@/types/mailAccount';
 
-type DeleteImapAccountDialogProps = {
-  account: ImapAccount | null;
+type DeleteMailAccountDialogProps = {
+  account: MailAccount | null;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (account: ImapAccount) => void;
+  onConfirm: (account: MailAccount) => void;
 };
 
-export function DeleteImapAccountDialog({ account, onOpenChange, onConfirm }: DeleteImapAccountDialogProps) {
+export function DeleteMailAccountDialog({ account, onOpenChange, onConfirm }: DeleteMailAccountDialogProps) {
   return (
     <Dialog open={account !== null} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -24,7 +24,8 @@ export function DeleteImapAccountDialog({ account, onOpenChange, onConfirm }: De
             <DialogHeader>
               <DialogTitle>アカウントを削除しますか?</DialogTitle>
               <DialogDescription>
-                「{account.name}」({account.user})の設定を削除します。保存済みのパスワードも削除されます。
+                「{account.name}」({account.email})を一覧から外し、保存済みの認証情報を削除します。Google
+                アカウント側のアクセス許可は、Google アカウントの設定から解除できます。
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

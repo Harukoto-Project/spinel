@@ -1,20 +1,19 @@
-import { ImapFetchSettingsCardSkeleton } from '@/components/imap/ImapFetchSettingsCardSkeleton';
-import { ImapNodeSettings } from '@/components/imap/ImapNodeSettings';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { MailAccountsNodeSettings } from '@/components/mail-accounts/MailAccountsNodeSettings';
 import { NodeRequiredNotice } from '@/components/nodes/NodeRequiredNotice';
 import { NodeSelect } from '@/components/nodes/NodeSelect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNodesContext } from '@/contexts/NodesContext';
 import { useSelectedNode } from '@/hooks/use-selected-node';
 
-export function ImapSettingsPage() {
+export function MailAccountsPage() {
   const { nodes, loaded } = useNodesContext();
   const { selectedNode, setSelectedId } = useSelectedNode(nodes);
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <PageHeader title="IMAPの設定" />
+        <PageHeader title="メールアカウント" />
         {!loaded ? (
           <Skeleton className="h-9 w-full sm:w-64" />
         ) : (
@@ -22,9 +21,9 @@ export function ImapSettingsPage() {
         )}
       </div>
       {!loaded ? (
-        <ImapFetchSettingsCardSkeleton />
+        <Skeleton className="h-48 w-full" />
       ) : selectedNode ? (
-        <ImapNodeSettings key={selectedNode.id} nodeId={selectedNode.id} />
+        <MailAccountsNodeSettings key={selectedNode.id} nodeId={selectedNode.id} />
       ) : (
         <NodeRequiredNotice />
       )}

@@ -1,11 +1,11 @@
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type AddImapAccountButtonProps = {
+type AddMailAccountButtonProps = {
   onClick?: () => void;
 };
 
-export function AddImapAccountButton({ onClick }: AddImapAccountButtonProps) {
+export function AddMailAccountButton({ onClick }: AddMailAccountButtonProps) {
   return (
     <Button className="cursor-pointer" onClick={onClick}>
       <Plus />

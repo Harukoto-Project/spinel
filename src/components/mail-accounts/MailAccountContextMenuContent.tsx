@@ -1,24 +1,24 @@
 import { Fragment } from 'react';
-import { IMAP_ACCOUNT_ACTIONS, type ImapAccountActionHandlers } from '@/components/imap/imapAccountActions';
+import { MAIL_ACCOUNT_ACTIONS, type MailAccountActionHandlers } from '@/components/mail-accounts/mailAccountActions';
 import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuLabel,
   ContextMenuSeparator,
 } from '@/components/ui/context-menu';
-import type { ImapAccount } from '@/types/imap';
+import type { MailAccount } from '@/types/mailAccount';
 
-type ImapAccountContextMenuContentProps = {
-  account: ImapAccount;
-  handlers: ImapAccountActionHandlers;
+type MailAccountContextMenuContentProps = {
+  account: MailAccount;
+  handlers: MailAccountActionHandlers;
 };
 
-export function ImapAccountContextMenuContent({ account, handlers }: ImapAccountContextMenuContentProps) {
+export function MailAccountContextMenuContent({ account, handlers }: MailAccountContextMenuContentProps) {
   return (
     <ContextMenuContent>
       <ContextMenuLabel>{account.name}</ContextMenuLabel>
       <ContextMenuSeparator />
-      {IMAP_ACCOUNT_ACTIONS.map((action) => (
+      {MAIL_ACCOUNT_ACTIONS.map((action) => (
         <Fragment key={action.id}>
           {action.separatorBefore && <ContextMenuSeparator />}
           <ContextMenuItem

@@ -23,7 +23,11 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 keyring = { version = "3", features = ["windows-native", "apple-native", "sync-secret-service", "crypto-rust"] }
-tokio = { version = "1", features = ["time", "sync"] }
+tokio = { version = "1", features = ["time", "sync", "net", "io-util"] }
+sha2 = "0.10"
+base64 = "0.22"
+url = "2"
+uuid = { version = "1", features = ["v4"] }
 tokio-tungstenite = { version = "0.30.0", features = ["native-tls"] }
 futures-util = "0.3.34"
 tauri-plugin-notification = "2"
