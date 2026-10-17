@@ -1,6 +1,8 @@
 import { buildApp } from './mod/app.js';
 import { loadConfig } from './mod/config.js';
 
+import 'dotenv/config';
+
 try {
   const config = loadConfig();
   const app = await buildApp(config);
