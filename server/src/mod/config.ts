@@ -1,11 +1,18 @@
 export interface Config {
   host: string;
   port: number;
+  dataDir: string;
+  adminKey: string | null;
 }
 
 const str = (key: string, fallback: string): string => {
   const raw = process.env[key];
   return raw === undefined || raw === '' ? fallback : raw;
+};
+
+const optional = (key: string): string | null => {
+  const raw = process.env[key];
+  return raw === undefined || raw === '' ? null : raw;
 };
 
 const port = (key: string, fallback: number): number => {
@@ -21,4 +28,6 @@ const port = (key: string, fallback: number): number => {
 export const loadConfig = (): Config => ({
   host: str('HOST', '0.0.0.0'),
   port: port('PORT', 8787),
+  dataDir: str('DATA_DIR', './data'),
+  adminKey: optional('ADMIN_KEY'),
 });

@@ -3,7 +3,7 @@ import { loadConfig } from './mod/config.js';
 
 try {
   const config = loadConfig();
-  const app = await buildApp();
+  const app = await buildApp(config);
 
   const shutdown = () => {
     app.close().finally(() => process.exit(0));
