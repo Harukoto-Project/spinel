@@ -11,7 +11,13 @@ type NavItemProps = {
 export function NavItem({ icon: Icon, label, active = false, onClick }: NavItemProps) {
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton className='cursor-pointer' isActive={active} tooltip={label} onClick={onClick} aria-current={active ? 'page' : undefined}>
+      <SidebarMenuButton
+        className="cursor-pointer"
+        isActive={active}
+        tooltip={label}
+        onClick={onClick}
+        aria-current={active ? 'page' : undefined}
+      >
         <Icon />
         <span>{label}</span>
       </SidebarMenuButton>
