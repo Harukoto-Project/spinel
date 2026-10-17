@@ -54,13 +54,13 @@ export function DataTable<TData extends RowData>({
               ));
 
               if (!renderRowContextMenu) {
-                return <TableRow key={row.id}>{cells}</TableRow>;
+                return <TableRow className='cursor-pointer' key={row.id}>{cells}</TableRow>;
               }
 
               return (
                 <ContextMenu key={row.id}>
                   <ContextMenuTrigger asChild>
-                    <TableRow>{cells}</TableRow>
+                    <TableRow className='cursor-pointer select-none'>{cells}</TableRow>
                   </ContextMenuTrigger>
                   {renderRowContextMenu(row.original)}
                 </ContextMenu>
