@@ -25,7 +25,7 @@ export const registerMailAccountsRoute = (app: FastifyInstance, { auth, mail }: 
   const preHandler = requireAdminKey(auth);
 
   app.get('/mail/accounts', { preHandler }, async (): Promise<AccountsResponse> => ({
-    accounts: mail.listAccounts(),
+    accounts: await mail.listAccounts(),
   }));
 
   app.post<{ Body: ConnectMailAccountInput }>(

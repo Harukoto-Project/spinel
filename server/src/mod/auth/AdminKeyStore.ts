@@ -1,29 +1,21 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
+import { execute, queryRows, type Db } from '../db/Database.js';
 
 const KEY_PREFIX = 'spn_';
 const HASH_HEX_LENGTH = 64;
+const ROW_ID = 1;
 
-interface StoredAdminKey {
+interface AdminKeyRow {
   hash: string;
-  createdAt: string;
 }
 
 const digest = (key: string): Buffer => createHash('sha256').update(key).digest();
-
-const isStoredAdminKey = (value: unknown): value is StoredAdminKey =>
-  typeof value === 'object' &&
-  value !== null &&
-  'hash' in value &&
-  typeof value.hash === 'string' &&
-  value.hash.length === HASH_HEX_LENGTH;
 
 export class AdminKeyStore {
   private hash: Buffer | null = null;
 
   public constructor(
-    private readonly filePath: string,
+    private readonly db: Db,
     private readonly fixedKey: string | null,
   ) {}
 
@@ -35,15 +27,24 @@ export class AdminKeyStore {
 
     const stored = await this.read();
     if (stored) {
-      this.hash = Buffer.from(stored.hash, 'hex');
+      this.hash = stored;
       return null;
     }
 
     const key = `${KEY_PREFIX}${randomBytes(32).toString('base64url')}`;
     const hash = digest(key);
-    const record: StoredAdminKey = { hash: hash.toString('hex'), createdAt: new Date().toISOString() };
-    await mkdir(path.dirname(this.filePath), { recursive: true });
-    await writeFile(this.filePath, JSON.stringify(record, null, 2), { mode: 0o600 });
+    const result = await execute(this.db, 'INSERT IGNORE INTO admin_keys (id, hash, created_at) VALUES (?, ?, ?)', [
+      ROW_ID,
+      hash.toString('hex'),
+      Date.now(),
+    ]);
+    if (result.affectedRows === 0) {
+      const raced = await this.read();
+      if (raced === null) throw new Error('管理キーを保存できませんでした');
+      this.hash = raced;
+      return null;
+    }
+
     this.hash = hash;
     return key;
   }
@@ -53,19 +54,12 @@ export class AdminKeyStore {
     return timingSafeEqual(digest(key), this.hash);
   }
 
-  private async read(): Promise<StoredAdminKey | null> {
-    let raw: string;
-    try {
-      raw = await readFile(this.filePath, 'utf8');
-    } catch (error) {
-      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return null;
-      throw error;
+  private async read(): Promise<Buffer | null> {
+    const [row] = await queryRows<AdminKeyRow>(this.db, 'SELECT hash FROM admin_keys WHERE id = ?', [ROW_ID]);
+    if (row === undefined) return null;
+    if (row.hash.length !== HASH_HEX_LENGTH) {
+      throw new Error('管理キーのハッシュの形式が正しくありません(admin_keys テーブル)');
     }
-
-    const parsed: unknown = JSON.parse(raw);
-    if (!isStoredAdminKey(parsed)) {
-      throw new Error(`管理キーファイルの形式が正しくありません: ${this.filePath}`);
-    }
-    return parsed;
+    return Buffer.from(row.hash, 'hex');
   }
 }

@@ -11,7 +11,7 @@ export const registerMailHistoryRoute = (app: FastifyInstance, { auth, mail }: R
   const preHandler = requireAdminKey(auth);
 
   app.get('/mail/history', { preHandler }, async (): Promise<HistoryResponse> => ({
-    history: mail.listHistory(),
+    history: await mail.listHistory(),
   }));
 
   app.delete('/mail/history', { preHandler }, async (): Promise<HistoryResponse> => ({

@@ -1,4 +1,4 @@
-import { readJsonFile, SerialWriter, writeJsonFile } from '../../storage/jsonFile.js';
+import { execute, queryRows, type Queryable } from '../../db/Database.js';
 import {
   POLL_INTERVAL_SEC_DEFAULT,
   POLL_INTERVAL_SEC_MAX,
@@ -8,6 +8,12 @@ import {
 
 type Listener = (settings: MailSettings) => void;
 
+const ROW_ID = 1;
+
+interface MailSettingsRow {
+  poll_interval_sec: number;
+}
+
 export const isValidPollInterval = (value: unknown): value is number =>
   typeof value === 'number' &&
   Number.isInteger(value) &&
@@ -15,26 +21,23 @@ export const isValidPollInterval = (value: unknown): value is number =>
   value <= POLL_INTERVAL_SEC_MAX;
 
 export class MailSettingsStore {
-  private settings: MailSettings = { pollIntervalSec: POLL_INTERVAL_SEC_DEFAULT };
-  private readonly writer = new SerialWriter();
   private readonly listeners = new Set<Listener>();
 
-  public constructor(private readonly filePath: string) {}
+  public constructor(private readonly db: Queryable) {}
 
-  public async load(): Promise<void> {
-    const parsed = await readJsonFile(this.filePath);
-    if (parsed === undefined) return;
+  public async get(): Promise<MailSettings> {
+    const [row] = await queryRows<MailSettingsRow>(
+      this.db,
+      'SELECT poll_interval_sec FROM mail_settings WHERE id = ?',
+      [ROW_ID],
+    );
+    if (row === undefined) return { pollIntervalSec: POLL_INTERVAL_SEC_DEFAULT };
 
-    const interval =
-      typeof parsed === 'object' && parsed !== null && 'pollIntervalSec' in parsed ? parsed.pollIntervalSec : null;
+    const interval = Number(row.poll_interval_sec);
     if (!isValidPollInterval(interval)) {
-      throw new Error(`メール設定ファイルの形式が正しくありません: ${this.filePath}`);
+      throw new Error('メール設定の取得間隔が正しくありません(mail_settings テーブル)');
     }
-    this.settings = { pollIntervalSec: interval };
-  }
-
-  public get(): MailSettings {
-    return { ...this.settings };
+    return { pollIntervalSec: interval };
   }
 
   public subscribe(listener: Listener): void {
@@ -42,8 +45,12 @@ export class MailSettingsStore {
   }
 
   public async update(settings: MailSettings): Promise<void> {
-    this.settings = { ...settings };
-    await this.writer.run(() => writeJsonFile(this.filePath, this.settings));
-    for (const listener of this.listeners) listener(this.get());
+    await execute(
+      this.db,
+      `INSERT INTO mail_settings (id, poll_interval_sec) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE poll_interval_sec = VALUES(poll_interval_sec)`,
+      [ROW_ID, settings.pollIntervalSec],
+    );
+    for (const listener of this.listeners) listener({ ...settings });
   }
 }

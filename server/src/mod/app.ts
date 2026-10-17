@@ -1,4 +1,3 @@
-import path from 'node:path';
 import cors from '@fastify/cors';
 import websocket from '@fastify/websocket';
 import Fastify, { type FastifyInstance } from 'fastify';
@@ -8,6 +7,9 @@ import { FailureLimiter } from './auth/FailureLimiter.js';
 import { TokenStore } from './auth/TokenStore.js';
 import { announceAdminKey } from './auth/announceAdminKey.js';
 import type { Config } from './config.js';
+import { createDatabase } from './db/Database.js';
+import { importLegacyData } from './db/legacy/importLegacyData.js';
+import { runMigrations } from './db/runMigrations.js';
 import { HealthService } from './health/HealthService.js';
 import { registerErrorHandler } from './http/errorHandler.js';
 import type { Logger } from './logger.js';
@@ -27,11 +29,6 @@ import { registerRoutes } from './routes/index.js';
 import { loadAppVersion } from './system/appVersion.js';
 import { Triage } from './triage/Triage.js';
 
-const ADMIN_KEY_FILE = 'admin-key.json';
-const MAIL_ACCOUNTS_FILE = 'mail-accounts.json';
-const MAIL_SETTINGS_FILE = 'mail-settings.json';
-const MAIL_PROCESSED_FILE = 'mail-processed.json';
-const MAIL_HISTORY_FILE = 'mail-history.json';
 const SOCKET_MAX_PAYLOAD_BYTES = 1024;
 const REQUIRED_AI_KEYS = ['TYPESAFE_API_KEY', 'ANTHROPIC_API_KEY'] as const;
 
@@ -48,21 +45,28 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
   };
 
   const version = loadAppVersion();
-  const dataPath = (file: string) => path.resolve(config.dataDir, file);
 
-  const adminKeyFile = dataPath(ADMIN_KEY_FILE);
-  const adminKeys = new AdminKeyStore(adminKeyFile, config.adminKey);
+  const db = createDatabase(config.databaseUrl);
+  app.addHook('onClose', async () => db.end());
+  try {
+    await runMigrations(db, logger);
+    await importLegacyData(db, config.dataDir, logger);
+  } catch (error) {
+    await db.end().catch(() => undefined);
+    throw error;
+  }
+
+  const adminKeys = new AdminKeyStore(db, config.adminKey);
   const createdKey = await adminKeys.ensure();
-  if (createdKey) announceAdminKey(createdKey, adminKeyFile);
+  if (createdKey) announceAdminKey(createdKey);
 
   const hub = new NotificationHub(version);
   app.addHook('onClose', async () => hub.close());
 
-  const accounts = new MailAccountStore(dataPath(MAIL_ACCOUNTS_FILE));
-  const settings = new MailSettingsStore(dataPath(MAIL_SETTINGS_FILE));
-  const processed = new ProcessedStore(dataPath(MAIL_PROCESSED_FILE));
-  const history = new MailHistoryStore(dataPath(MAIL_HISTORY_FILE));
-  await Promise.all([accounts.load(), settings.load(), processed.load(), history.load()]);
+  const accounts = new MailAccountStore(db);
+  const settings = new MailSettingsStore(db);
+  const processed = new ProcessedStore(db);
+  const history = new MailHistoryStore(db);
 
   const googleTokens = config.google
     ? new GoogleAccessTokens(config.google.clientId, config.google.clientSecret)
@@ -71,7 +75,7 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
     ? new OutlookAccessTokens(
         config.outlook.clientId,
         async (previous, next) => {
-          const account = accounts.list().find((candidate) => candidate.refreshToken === previous);
+          const account = (await accounts.list()).find((candidate) => candidate.refreshToken === previous);
           if (account) await accounts.update(account.id, { refreshToken: next });
         },
         logger,

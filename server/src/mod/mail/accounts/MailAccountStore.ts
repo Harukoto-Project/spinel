@@ -1,90 +1,124 @@
-import { readJsonFile, SerialWriter, writeJsonFile } from '../../storage/jsonFile.js';
-import { MAIL_PROVIDER_IDS, type StoredMailAccount } from '../types.js';
+import { execute, queryRows, type Queryable } from '../../db/Database.js';
+import type { MailProviderId, StoredMailAccount } from '../types.js';
 
-interface MailAccountFile {
-  accounts: StoredMailAccount[];
+interface MailAccountRow {
+  id: string;
+  provider: MailProviderId;
+  email: string;
+  name: string;
+  refresh_token: string;
+  connected_at: number;
+  connected: number;
+  last_error: string | null;
+  last_checked_at: number | null;
+  sync_cursor: string | null;
 }
 
-const isStringOrNull = (value: unknown): value is string | null => value === null || typeof value === 'string';
+const SELECT_COLUMNS =
+  'id, provider, email, name, refresh_token, connected_at, connected, last_error, last_checked_at, sync_cursor';
 
-const isNumberOrNull = (value: unknown): value is number | null => value === null || typeof value === 'number';
-
-const isStoredAccount = (value: unknown): value is StoredMailAccount => {
-  if (typeof value !== 'object' || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return (
-    typeof v.id === 'string' &&
-    typeof v.provider === 'string' &&
-    (MAIL_PROVIDER_IDS as readonly string[]).includes(v.provider) &&
-    typeof v.email === 'string' &&
-    typeof v.name === 'string' &&
-    typeof v.refreshToken === 'string' &&
-    typeof v.connectedAt === 'number' &&
-    typeof v.connected === 'boolean' &&
-    isStringOrNull(v.lastError) &&
-    isNumberOrNull(v.lastCheckedAt) &&
-    isStringOrNull(v.cursor)
-  );
+const COLUMN_BY_FIELD: Record<Exclude<keyof StoredMailAccount, 'id'>, string> = {
+  provider: 'provider',
+  email: 'email',
+  name: 'name',
+  refreshToken: 'refresh_token',
+  connectedAt: 'connected_at',
+  connected: 'connected',
+  lastError: 'last_error',
+  lastCheckedAt: 'last_checked_at',
+  cursor: 'sync_cursor',
 };
 
+const toAccount = (row: MailAccountRow): StoredMailAccount => ({
+  id: row.id,
+  provider: row.provider,
+  email: row.email,
+  name: row.name,
+  refreshToken: row.refresh_token,
+  connectedAt: Number(row.connected_at),
+  connected: row.connected === 1,
+  lastError: row.last_error,
+  lastCheckedAt: row.last_checked_at === null ? null : Number(row.last_checked_at),
+  cursor: row.sync_cursor,
+});
+
+const toColumnValue = (value: unknown): unknown => (typeof value === 'boolean' ? (value ? 1 : 0) : value);
+
 export class MailAccountStore {
-  private accounts: StoredMailAccount[] = [];
-  private readonly writer = new SerialWriter();
+  public constructor(private readonly db: Queryable) {}
 
-  public constructor(private readonly filePath: string) {}
-
-  public async load(): Promise<void> {
-    const parsed = await readJsonFile(this.filePath);
-    if (parsed === undefined) return;
-
-    const list = typeof parsed === 'object' && parsed !== null && 'accounts' in parsed ? parsed.accounts : null;
-    if (!Array.isArray(list) || !list.every(isStoredAccount)) {
-      throw new Error(`メールアカウントファイルの形式が正しくありません: ${this.filePath}`);
-    }
-    this.accounts = list;
-  }
-
-  public list(): StoredMailAccount[] {
-    return this.accounts.map((account) => ({ ...account }));
-  }
-
-  public get(id: string): StoredMailAccount | undefined {
-    const account = this.accounts.find((candidate) => candidate.id === id);
-    return account ? { ...account } : undefined;
-  }
-
-  public findByEmail(provider: StoredMailAccount['provider'], email: string): StoredMailAccount | undefined {
-    const lowered = email.toLowerCase();
-    const account = this.accounts.find(
-      (candidate) => candidate.provider === provider && candidate.email.toLowerCase() === lowered,
+  public async list(): Promise<StoredMailAccount[]> {
+    const rows = await queryRows<MailAccountRow>(
+      this.db,
+      `SELECT ${SELECT_COLUMNS} FROM mail_accounts ORDER BY seq ASC`,
     );
-    return account ? { ...account } : undefined;
+    return rows.map(toAccount);
+  }
+
+  public async get(id: string): Promise<StoredMailAccount | undefined> {
+    const [row] = await queryRows<MailAccountRow>(
+      this.db,
+      `SELECT ${SELECT_COLUMNS} FROM mail_accounts WHERE id = ?`,
+      [id],
+    );
+    return row ? toAccount(row) : undefined;
+  }
+
+  public async findByEmail(provider: MailProviderId, email: string): Promise<StoredMailAccount | undefined> {
+    const [row] = await queryRows<MailAccountRow>(
+      this.db,
+      `SELECT ${SELECT_COLUMNS} FROM mail_accounts WHERE provider = ? AND email = ?`,
+      [provider, email],
+    );
+    return row ? toAccount(row) : undefined;
   }
 
   public async save(account: StoredMailAccount): Promise<void> {
-    const index = this.accounts.findIndex((candidate) => candidate.id === account.id);
-    if (index >= 0) this.accounts[index] = { ...account };
-    else this.accounts.push({ ...account });
-    await this.persist();
+    await execute(
+      this.db,
+      `INSERT INTO mail_accounts (${SELECT_COLUMNS})
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         provider = VALUES(provider),
+         email = VALUES(email),
+         name = VALUES(name),
+         refresh_token = VALUES(refresh_token),
+         connected_at = VALUES(connected_at),
+         connected = VALUES(connected),
+         last_error = VALUES(last_error),
+         last_checked_at = VALUES(last_checked_at),
+         sync_cursor = VALUES(sync_cursor)`,
+      [
+        account.id,
+        account.provider,
+        account.email,
+        account.name,
+        account.refreshToken,
+        account.connectedAt,
+        account.connected ? 1 : 0,
+        account.lastError,
+        account.lastCheckedAt,
+        account.cursor,
+      ],
+    );
   }
 
   public async update(id: string, patch: Partial<Omit<StoredMailAccount, 'id'>>): Promise<void> {
-    const index = this.accounts.findIndex((candidate) => candidate.id === id);
-    const current = this.accounts[index];
-    if (current === undefined) return;
-    this.accounts[index] = { ...current, ...patch };
-    await this.persist();
+    const assignments: string[] = [];
+    const params: unknown[] = [];
+    for (const [field, value] of Object.entries(patch)) {
+      const column = COLUMN_BY_FIELD[field as keyof typeof COLUMN_BY_FIELD];
+      if (column === undefined || value === undefined) continue;
+      assignments.push(`${column} = ?`);
+      params.push(toColumnValue(value));
+    }
+    if (assignments.length === 0) return;
+
+    await execute(this.db, `UPDATE mail_accounts SET ${assignments.join(', ')} WHERE id = ?`, [...params, id]);
   }
 
   public async remove(id: string): Promise<boolean> {
-    const before = this.accounts.length;
-    this.accounts = this.accounts.filter((candidate) => candidate.id !== id);
-    if (this.accounts.length === before) return false;
-    await this.persist();
-    return true;
-  }
-
-  private persist(): Promise<void> {
-    return this.writer.run(() => writeJsonFile(this.filePath, { accounts: this.accounts } satisfies MailAccountFile));
+    const result = await execute(this.db, 'DELETE FROM mail_accounts WHERE id = ?', [id]);
+    return result.affectedRows > 0;
   }
 }

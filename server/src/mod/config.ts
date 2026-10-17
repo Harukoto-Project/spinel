@@ -13,6 +13,7 @@ export interface Config {
   host: string;
   port: number;
   dataDir: string;
+  databaseUrl: string;
   adminKey: string | null;
   google: GoogleOAuthConfig | null;
   outlook: OutlookOAuthConfig | null;
@@ -45,6 +46,26 @@ const port = (key: string, fallback: number): number => {
     throw new Error(`環境変数 ${key} がポート番号として正しくありません: ${value}`);
   }
   return value;
+};
+
+const loadDatabaseUrl = (): string => {
+  const raw = optional('DATABASE_URL');
+  if (raw === null) {
+    throw new Error('環境変数 DATABASE_URL が未設定です(例: mysql://user:password@localhost:3306/spinel)');
+  }
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error('環境変数 DATABASE_URL が URL として正しくありません');
+  }
+  if (url.protocol !== 'mysql:') {
+    throw new Error('環境変数 DATABASE_URL は mysql:// で始めてください');
+  }
+  if (url.pathname.length <= 1) {
+    throw new Error('環境変数 DATABASE_URL にデータベース名を含めてください(例: mysql://.../spinel)');
+  }
+  return raw;
 };
 
 const loadGoogle = (): GoogleOAuthConfig | null => {
@@ -81,6 +102,7 @@ export const loadConfig = (): Config => ({
   host: str('HOST', '0.0.0.0'),
   port: port('PORT', 8787),
   dataDir: str('DATA_DIR', './data'),
+  databaseUrl: loadDatabaseUrl(),
   adminKey: optional('ADMIN_KEY'),
   google: loadGoogle(),
   outlook: loadOutlook(),

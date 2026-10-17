@@ -16,7 +16,8 @@
     "@fastify/websocket": "^11.3.4",
     "@typesafe-ai/sdk": "^0.7.0",
     "fastify": "^5.12.7",
-    "mailparser": "^3.9.40"
+    "mailparser": "^3.9.40",
+    "mysql2": "^3.24.6"
   },
   "devDependencies": {
     "@types/mailparser": "^3.9.0",

@@ -10,7 +10,7 @@ import type { ProcessedStore } from './ProcessedStore.js';
 import type { MailProvider } from './providers/MailProvider.js';
 import type { ProviderRegistry } from './providers/ProviderRegistry.js';
 import type { MailSettingsStore } from './settings/MailSettingsStore.js';
-import type { Mail, MailDecision, StoredMailAccount } from './types.js';
+import { POLL_INTERVAL_SEC_DEFAULT, type Mail, type MailDecision, type StoredMailAccount } from './types.js';
 
 const INITIAL_DELAY_MS = 5_000;
 const MAX_ATTEMPTS = 3;
@@ -35,7 +35,7 @@ export class MailPoller {
   private readonly attempts = new Map<string, number>();
 
   public constructor(private readonly deps: MailPollerDeps) {
-    deps.settings.subscribe(() => this.reschedule());
+    deps.settings.subscribe((settings) => this.reschedule(settings.pollIntervalSec * 1000));
   }
 
   public start(): void {
@@ -49,13 +49,18 @@ export class MailPoller {
     this.timer = null;
   }
 
-  private reschedule(): void {
+  private reschedule(delayMs: number): void {
     if (this.stopped || this.running) return;
-    this.schedule(this.intervalMs());
+    this.schedule(delayMs);
   }
 
-  private intervalMs(): number {
-    return this.deps.settings.get().pollIntervalSec * 1000;
+  private async intervalMs(): Promise<number> {
+    try {
+      return (await this.deps.settings.get()).pollIntervalSec * 1000;
+    } catch (error) {
+      this.deps.logger.error('メール設定を読み込めなかったため、既定の取得間隔を使います', error);
+      return POLL_INTERVAL_SEC_DEFAULT * 1000;
+    }
   }
 
   private schedule(delayMs: number): void {
@@ -71,12 +76,12 @@ export class MailPoller {
       this.deps.logger.error('メール取得の処理で予期しないエラーが発生しました', error);
     } finally {
       this.running = false;
-      if (!this.stopped) this.schedule(this.intervalMs());
+      if (!this.stopped) this.schedule(await this.intervalMs());
     }
   }
 
   private async pollAll(): Promise<void> {
-    for (const account of this.deps.accounts.list()) {
+    for (const account of await this.deps.accounts.list()) {
       if (this.stopped) return;
       if (!account.connected) continue;
 
@@ -115,7 +120,7 @@ export class MailPoller {
     let complete = true;
     for (const mail of mails) {
       if (this.stopped) return;
-      if (this.deps.processed.has(mail.id)) continue;
+      if (await this.deps.processed.has(mail.id)) continue;
       if (!(await this.process(account, mail))) complete = false;
     }
 

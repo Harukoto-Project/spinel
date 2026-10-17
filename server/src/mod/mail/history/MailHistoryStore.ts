@@ -1,75 +1,93 @@
-import { readJsonFile, SerialWriter, writeJsonFile } from '../../storage/jsonFile.js';
-import { MAIL_PROVIDER_IDS, type MailHistoryEntry } from '../types.js';
+import { execute, queryRows, type Queryable } from '../../db/Database.js';
+import type { MailDecision, MailHistoryEntry, MailHistoryPriority, MailProviderId } from '../types.js';
 
 const MAX_ENTRIES = 1000;
 
-interface MailHistoryFile {
-  history: MailHistoryEntry[];
+interface MailHistoryRow {
+  id: string;
+  account_id: string;
+  account_name: string;
+  account_email: string;
+  provider: MailProviderId;
+  sender: string;
+  subject: string;
+  received_at: number;
+  processed_at: number;
+  decision: MailDecision;
+  priority: MailHistoryPriority | null;
+  summary: string | null;
+  deadline: string | null;
 }
 
-const isStringOrNull = (value: unknown): value is string | null => value === null || typeof value === 'string';
+const SELECT_COLUMNS =
+  'id, account_id, account_name, account_email, provider, sender, subject, received_at, processed_at, decision, priority, summary, deadline';
 
-const isHistoryEntry = (value: unknown): value is MailHistoryEntry => {
-  if (typeof value !== 'object' || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return (
-    typeof v.id === 'string' &&
-    typeof v.accountId === 'string' &&
-    typeof v.accountName === 'string' &&
-    typeof v.accountEmail === 'string' &&
-    typeof v.provider === 'string' &&
-    (MAIL_PROVIDER_IDS as readonly string[]).includes(v.provider) &&
-    typeof v.from === 'string' &&
-    typeof v.subject === 'string' &&
-    typeof v.receivedAt === 'number' &&
-    typeof v.processedAt === 'number' &&
-    (v.decision === 'notify' || v.decision === 'ignore') &&
-    (v.priority === null || v.priority === 'normal' || v.priority === 'urgent') &&
-    isStringOrNull(v.summary) &&
-    isStringOrNull(v.deadline)
-  );
-};
+const toEntry = (row: MailHistoryRow): MailHistoryEntry => ({
+  id: row.id,
+  accountId: row.account_id,
+  accountName: row.account_name,
+  accountEmail: row.account_email,
+  provider: row.provider,
+  from: row.sender,
+  subject: row.subject,
+  receivedAt: Number(row.received_at),
+  processedAt: Number(row.processed_at),
+  decision: row.decision,
+  priority: row.priority,
+  summary: row.summary,
+  deadline: row.deadline,
+});
 
 export class MailHistoryStore {
-  private entries: MailHistoryEntry[] = [];
-  private readonly writer = new SerialWriter();
+  public constructor(private readonly db: Queryable) {}
 
-  public constructor(private readonly filePath: string) {}
-
-  public async load(): Promise<void> {
-    const parsed = await readJsonFile(this.filePath);
-    if (parsed === undefined) return;
-
-    const list = typeof parsed === 'object' && parsed !== null && 'history' in parsed ? parsed.history : null;
-    if (!Array.isArray(list) || !list.every(isHistoryEntry)) {
-      throw new Error(`メール履歴ファイルの形式が正しくありません: ${this.filePath}`);
-    }
-    this.entries = list;
-  }
-
-  public list(): MailHistoryEntry[] {
-    return this.entries.map((entry) => ({ ...entry }));
+  public async list(): Promise<MailHistoryEntry[]> {
+    const rows = await queryRows<MailHistoryRow>(
+      this.db,
+      `SELECT ${SELECT_COLUMNS} FROM mail_history ORDER BY seq DESC LIMIT ?`,
+      [MAX_ENTRIES],
+    );
+    return rows.map(toEntry);
   }
 
   public async add(entry: MailHistoryEntry): Promise<void> {
-    this.entries = [{ ...entry }, ...this.entries].slice(0, MAX_ENTRIES);
-    await this.persist();
+    await execute(
+      this.db,
+      `INSERT INTO mail_history (${SELECT_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        entry.id,
+        entry.accountId,
+        entry.accountName,
+        entry.accountEmail,
+        entry.provider,
+        entry.from,
+        entry.subject,
+        entry.receivedAt,
+        entry.processedAt,
+        entry.decision,
+        entry.priority,
+        entry.summary,
+        entry.deadline,
+      ],
+    );
+
+    await execute(
+      this.db,
+      `DELETE FROM mail_history WHERE seq <= (
+         SELECT seq FROM (
+           SELECT seq FROM mail_history ORDER BY seq DESC LIMIT 1 OFFSET ?
+         ) AS oldest
+       )`,
+      [MAX_ENTRIES],
+    );
   }
 
   public async remove(id: string): Promise<boolean> {
-    const before = this.entries.length;
-    this.entries = this.entries.filter((entry) => entry.id !== id);
-    if (this.entries.length === before) return false;
-    await this.persist();
-    return true;
+    const result = await execute(this.db, 'DELETE FROM mail_history WHERE id = ?', [id]);
+    return result.affectedRows > 0;
   }
 
   public async clear(): Promise<void> {
-    this.entries = [];
-    await this.persist();
-  }
-
-  private persist(): Promise<void> {
-    return this.writer.run(() => writeJsonFile(this.filePath, { history: this.entries } satisfies MailHistoryFile));
+    await execute(this.db, 'DELETE FROM mail_history');
   }
 }

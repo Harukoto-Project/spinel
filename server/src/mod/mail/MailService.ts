@@ -22,7 +22,7 @@ export class MailService {
     private readonly history: MailHistoryStore,
   ) {}
 
-  public listHistory(): MailHistoryEntry[] {
+  public async listHistory(): Promise<MailHistoryEntry[]> {
     return this.history.list();
   }
 
@@ -38,8 +38,8 @@ export class MailService {
     return [];
   }
 
-  public listAccounts(): MailAccountView[] {
-    return this.accounts.list().map(toMailAccountView);
+  public async listAccounts(): Promise<MailAccountView[]> {
+    return (await this.accounts.list()).map(toMailAccountView);
   }
 
   public async connectAccount(input: ConnectMailAccountInput): Promise<MailAccountView[]> {
@@ -55,7 +55,7 @@ export class MailService {
       );
     }
 
-    const existing = this.accounts.findByEmail(input.provider, input.email);
+    const existing = await this.accounts.findByEmail(input.provider, input.email);
     const id = existing?.id ?? randomUUID();
 
     let latest: string;
@@ -90,7 +90,7 @@ export class MailService {
     return this.listAccounts();
   }
 
-  public getSettings(): MailSettings {
+  public async getSettings(): Promise<MailSettings> {
     return this.settings.get();
   }
 

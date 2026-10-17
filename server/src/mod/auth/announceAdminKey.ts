@@ -1,4 +1,4 @@
-export const announceAdminKey = (key: string, filePath: string): void => {
+export const announceAdminKey = (key: string): void => {
   const lines = [
     '',
     '================================================================',
@@ -7,7 +7,7 @@ export const announceAdminKey = (key: string, filePath: string): void => {
     `   ${key}`,
     '',
     ' クライアントの「ノードを追加」または「メールの通知設定」に入力してください。',
-    ` 紛失した場合は ${filePath} を削除して再起動すると再生成されます。`,
+    ' 紛失した場合は MySQL の admin_keys テーブルの行を削除して再起動すると再生成されます。',
     '================================================================',
     '',
   ];
