@@ -3,50 +3,70 @@ import { SecretInput } from '@/components/form/SecretInput';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import type { ApiKeyDefinition } from '@/types/apiKey';
+import type { ApiKeyDefinition, ApiKeyStatus } from '@/types/apiKey';
 
 type ApiKeyCardProps = {
   definition: ApiKeyDefinition;
-  configured: boolean;
-  onSave: (value: string) => void;
-  onDelete: () => void;
+  status: ApiKeyStatus;
+  onSave: (value: string) => Promise<boolean>;
+  onDelete: () => Promise<boolean>;
 };
 
-export function ApiKeyCard({ definition, configured, onSave, onDelete }: ApiKeyCardProps) {
+export function ApiKeyCard({ definition, status, onSave, onDelete }: ApiKeyCardProps) {
   const inputId = useId();
   const [value, setValue] = useState('');
+  const [pending, setPending] = useState(false);
   const trimmed = value.trim();
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (trimmed === '') return;
-    onSave(trimmed);
-    setValue('');
+    if (trimmed === '' || pending) return;
+    setPending(true);
+    try {
+      if (await onSave(trimmed)) setValue('');
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setPending(true);
+    try {
+      await onDelete();
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
     <Card>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-6">
         <CardHeader>
           <CardTitle>{definition.label}</CardTitle>
           <CardDescription>{definition.description}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          <Label htmlFor={inputId}>{configured ? '新しいキーで上書き' : 'APIキー'}</Label>
+          <Label htmlFor={inputId}>{status.configured ? '新しいキーで上書き' : 'APIキー'}</Label>
           <SecretInput
             id={inputId}
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            placeholder={configured ? '••••••••••••••••' : definition.placeholder}
+            placeholder={status.configured ? '••••••••••••••••' : definition.placeholder}
+            disabled={pending}
           />
+          {status.source === 'env' && (
+            <p className="text-sm text-muted-foreground">
+              サーバーの環境変数で設定済みです。ここで保存すると、保存したキーが優先されます。
+            </p>
+          )}
         </CardContent>
         <CardFooter className="flex-wrap justify-end gap-2">
-          {configured && (
-            <Button type="button" variant="outline" onClick={onDelete}>
+          {status.source === 'app' && (
+            <Button type="button" variant="outline" disabled={pending} onClick={() => void handleDelete()}>
               削除
             </Button>
           )}
-          <Button type="submit" disabled={trimmed === ''}>
+          <Button type="submit" disabled={trimmed === '' || pending}>
             保存
           </Button>
         </CardFooter>

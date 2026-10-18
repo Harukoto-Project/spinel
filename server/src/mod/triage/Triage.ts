@@ -1,7 +1,7 @@
 import type { Mail } from '../mail/types.js';
 import { ClaudeJudge } from './ClaudeJudge.js';
 import { JevScorer } from './JevScorer.js';
-import type { TriageConfig, TriageResult } from './types.js';
+import type { TriageConfig, TriageKeys, TriageResult } from './types.js';
 
 export class Triage {
   private readonly jev: JevScorer;
@@ -9,9 +9,9 @@ export class Triage {
   private readonly ignoreBelow: number;
   private readonly notifyAbove: number;
 
-  public constructor(config: TriageConfig) {
-    this.jev = new JevScorer(config.jevModel, config.jevBodyChars);
-    this.claude = new ClaudeJudge(config.claudeModel, config.claudeBodyChars);
+  public constructor(config: TriageConfig, keys: TriageKeys) {
+    this.jev = new JevScorer(config.jevModel, config.jevBodyChars, keys.typesafe);
+    this.claude = new ClaudeJudge(config.claudeModel, config.claudeBodyChars, keys.anthropic);
     this.ignoreBelow = config.ignoreBelow;
     this.notifyAbove = config.notifyAbove;
   }

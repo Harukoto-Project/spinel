@@ -168,12 +168,12 @@ PowerShellでは`cp`の代わりに`copy`を使います。`.env`で設定する
 | 変数 | 内容 |
 | --- | --- |
 | `DATABASE_URL` | 必須。`mysql://user:password@host:3306/database`の形式 |
-| `TYPESAFE_API_KEY`, `ANTHROPIC_API_KEY` | AI判定に使うAPIキー |
+| `TYPESAFE_API_KEY`, `ANTHROPIC_API_KEY` | AI判定に使うAPIキー。省略して、アプリの「APIキーの設定」から保存することもできる(その場合は保存した値が優先される) |
 | `JEV_MODEL`, `CLAUDE_MODEL` | 使うモデル |
 | `HOST`, `PORT` | 待ち受け先。既定は0.0.0.0と8787 |
 | `ADMIN_KEY` | 管理キーを固定したいときだけ。省略すると自動で生成される |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | メール連携でGmailを使うなら両方必要 |
-| `OUTLOOK_CLIENT_ID` | メール連携でOutlookを使うなら設定する。シークレットは不要 |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | メール連携でGmailを使うなら両方必要。アプリ側には設定しない |
+| `OUTLOOK_CLIENT_ID` | メール連携でOutlookを使うなら設定する。シークレットは不要。アプリ側には設定しない |
 | `IGNORE_BELOW`, `NOTIFY_ABOVE` | メールを除外する閾値と通知する閾値。既定は0.2と0.7 |
 
 ```bash
@@ -186,33 +186,18 @@ yarn dev
 > 管理キーは初回起動時にコンソールへ一度しか表示されません。必ず控えてください。なくした場合は、MySQLの`admin_keys`テーブルの行を消して再起動すると作り直されます。
 
 > [!WARNING]
-> リフレッシュトークンは管理キー付きのHTTPでノードに送られます。公開ネットワーク越しに使うなら、リバースプロキシなどでノードのアドレスを`https://`にしてください。
+> 管理キー、APIキー、メール連携の認可コードは、管理キー付きのHTTPでノードに送られます。公開ネットワーク越しに使うなら、リバースプロキシなどでノードのアドレスを`https://`にしてください。
 
 ### 2. アプリを起動する
 
-リポジトリのルートで作業します。
+リポジトリのルートで作業します。アプリ側に`.env`は要りません。OAuthのクライアントIDやAPIキーなどの機密情報は、すべてノード側で扱います。
 
 ```bash
 yarn install
-cp src-tauri/.env.example src-tauri/.env
-```
-
-`src-tauri/.env`には、メール連携で使うOAuthのクライアントIDを書きます。値はノード側の`.env`と同じにしてください。リフレッシュトークンは、発行したクライアントIDに紐づくためです。
-
-```env
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-OUTLOOK_CLIENT_ID=
-```
-
-```bash
 yarn tauri dev
 ```
 
-インストーラーは`yarn tauri build`で作れます。
-
-> [!NOTE]
-> この`.env`の値はビルド時にアプリへ埋め込まれます。書き換えたら作り直してください。
+インストーラーは`yarn tauri build`で作れます。配布するインストーラーに機密情報は含まれません。
 
 ### 3. アプリとノードをつなぐ
 
@@ -224,7 +209,7 @@ yarn tauri dev
     </td>
     <td width="33%" valign="top">
       <h4>② 管理キーを保存</h4>
-      「メールの通知設定」で管理キーを保存すると、通知の受信が始まります。
+      「メールの通知設定」で管理キーを保存すると、通知の受信が始まります。AI判定のAPIキーを`.env`に入れていない場合は、「APIキーの設定」で保存します。
     </td>
     <td width="33%" valign="top">
       <h4>③ アカウントを追加</h4>
@@ -240,7 +225,7 @@ yarn tauri dev
 
 <br />
 
-[Google Cloud Console](https://console.cloud.google.com/)で、OAuthクライアントをデスクトップアプリの種別で作ります。リダイレクトURIの登録は要りません。Gmail APIを有効にし、スコープは`gmail.readonly`を使います。クライアントIDとシークレットは、アプリとノードの両方に同じ値を入れます。
+[Google Cloud Console](https://console.cloud.google.com/)で、OAuthクライアントをデスクトップアプリの種別で作ります。リダイレクトURIの登録は要りません。Gmail APIを有効にし、スコープは`gmail.readonly`を使います。クライアントIDとシークレットは、ノードの`.env`にだけ入れます。
 
 </details>
 
@@ -258,7 +243,7 @@ yarn tauri dev
 | リダイレクトURI | `http://localhost` |
 | APIのアクセス許可 | Microsoft Graphの委任で`Mail.Read`、`User.Read`、`offline_access` |
 
-パブリッククライアントなのでシークレットは不要です。`OUTLOOK_CLIENT_ID`だけをアプリとノードの両方に設定してください。組織アカウントでは、テナントの設定によって管理者の同意が求められることがあります。
+パブリッククライアントなのでシークレットは不要です。`OUTLOOK_CLIENT_ID`だけをノードの`.env`に設定してください。組織アカウントでは、テナントの設定によって管理者の同意が求められることがあります。
 
 </details>
 

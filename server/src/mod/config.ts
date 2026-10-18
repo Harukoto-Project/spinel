@@ -1,3 +1,4 @@
+import type { ApiKeyEnvValues } from './apiKeys/types.js';
 import type { TriageConfig } from './triage/types.js';
 
 export interface GoogleOAuthConfig {
@@ -17,6 +18,7 @@ export interface Config {
   adminKey: string | null;
   google: GoogleOAuthConfig | null;
   outlook: OutlookOAuthConfig | null;
+  apiKeys: ApiKeyEnvValues;
   triage: TriageConfig;
 }
 
@@ -106,5 +108,9 @@ export const loadConfig = (): Config => ({
   adminKey: optional('ADMIN_KEY'),
   google: loadGoogle(),
   outlook: loadOutlook(),
+  apiKeys: {
+    typesafe: optional('TYPESAFE_API_KEY'),
+    anthropic: optional('ANTHROPIC_API_KEY'),
+  },
   triage: loadTriage(),
 });

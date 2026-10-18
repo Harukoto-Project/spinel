@@ -43,11 +43,7 @@ pub async fn connect_mail_account(
     provider: MailProvider,
 ) -> Result<Vec<MailAccountView>, String> {
     let target = resolve_node(&nodes, &node_id)?;
-    let config = provider.oauth_config()?;
-    let grant = flow::authorize(&app, &config).await?;
-    api::connect_account(&target, provider, grant)
-        .await
-        .map_err(ApiError::into_message)
+    flow::authorize(&app, &target, provider).await
 }
 
 #[tauri::command]

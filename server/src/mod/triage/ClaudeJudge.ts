@@ -50,12 +50,15 @@ const isVerdict = (value: unknown): value is ClaudeVerdict => {
 };
 
 export class ClaudeJudge {
-  private readonly client = new Anthropic();
+  private readonly client: Anthropic;
 
   public constructor(
     private readonly model: string,
     private readonly bodyChars: number,
-  ) {}
+    apiKey: string,
+  ) {
+    this.client = new Anthropic({ apiKey });
+  }
 
   public async judge(mail: Mail, jev: JevScore): Promise<ClaudeVerdict> {
     const message = await this.client.messages.create({

@@ -25,3 +25,9 @@ pub struct MailSettings {
 pub struct AccountsResponse {
     pub accounts: Vec<MailAccountView>,
 }
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OAuthStartResponse {
+    pub auth_url: String,
+}

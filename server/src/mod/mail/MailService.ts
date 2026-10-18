@@ -2,6 +2,9 @@ import { randomUUID } from 'node:crypto';
 import type { MailAccountStore } from './accounts/MailAccountStore.js';
 import { MailError, ProviderAuthError } from './errors.js';
 import type { MailHistoryStore } from './history/MailHistoryStore.js';
+import type { OAuthService } from './oauth/OAuthService.js';
+import type { OAuthCompleteInput, OAuthStartInput } from './oauth/types.js';
+import type { MailProvider } from './providers/MailProvider.js';
 import type { ProviderRegistry } from './providers/ProviderRegistry.js';
 import { isValidPollInterval, type MailSettingsStore } from './settings/MailSettingsStore.js';
 import {
@@ -11,6 +14,7 @@ import {
   type ConnectMailAccountInput,
   type MailAccountView,
   type MailHistoryEntry,
+  type MailProviderId,
   type MailSettings,
 } from './types.js';
 
@@ -20,6 +24,7 @@ export class MailService {
     private readonly providers: ProviderRegistry,
     private readonly settings: MailSettingsStore,
     private readonly history: MailHistoryStore,
+    private readonly oauth: OAuthService,
   ) {}
 
   public async listHistory(): Promise<MailHistoryEntry[]> {
@@ -42,8 +47,24 @@ export class MailService {
     return (await this.accounts.list()).map(toMailAccountView);
   }
 
-  public async connectAccount(input: ConnectMailAccountInput): Promise<MailAccountView[]> {
-    const provider = this.providers.get(input.provider);
+  public startOAuth(input: OAuthStartInput): { authUrl: string } {
+    this.requireProvider(input.provider);
+    return { authUrl: this.oauth.buildAuthUrl(input) };
+  }
+
+  public async completeOAuth(input: OAuthCompleteInput): Promise<MailAccountView[]> {
+    this.requireProvider(input.provider);
+    const grant = await this.oauth.exchange(input);
+    return this.connectAccount({
+      provider: input.provider,
+      email: grant.email,
+      name: grant.name,
+      refreshToken: grant.refreshToken,
+    });
+  }
+
+  private requireProvider(id: MailProviderId): MailProvider {
+    const provider = this.providers.get(id);
     if (!provider) {
       throw new MailError(400, 'unknown_provider', 'このノードは指定されたメールサービスに対応していません');
     }
@@ -51,9 +72,14 @@ export class MailService {
       throw new MailError(
         503,
         'provider_not_configured',
-        `このノードは ${provider.label} アカウントに対応していません(${provider.requiredEnv} が未設定です)`,
+        `このノードは ${provider.label} アカウントに対応していません(サーバーの ${provider.requiredEnv} が未設定です)`,
       );
     }
+    return provider;
+  }
+
+  private async connectAccount(input: ConnectMailAccountInput): Promise<MailAccountView[]> {
+    const provider = this.requireProvider(input.provider);
 
     const existing = await this.accounts.findByEmail(input.provider, input.email);
     const id = existing?.id ?? randomUUID();

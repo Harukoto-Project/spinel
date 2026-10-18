@@ -1,10 +1,8 @@
-export class MailError extends Error {
-  public constructor(
-    public readonly status: number,
-    public readonly code: string,
-    message: string,
-  ) {
-    super(message);
+import { HttpError } from '../http/HttpError.js';
+
+export class MailError extends HttpError {
+  public constructor(status: number, code: string, message: string) {
+    super(status, code, message);
     this.name = 'MailError';
   }
 }

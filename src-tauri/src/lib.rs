@@ -1,3 +1,4 @@
+mod api_keys;
 mod app_settings;
 mod json_file;
 mod mail_accounts;
@@ -9,6 +10,7 @@ mod tray;
 
 use tauri::Manager;
 
+use api_keys::commands::{delete_api_key, load_api_keys, save_api_key};
 use app_settings::commands::{load_app_settings, save_app_settings};
 use app_settings::store::AppSettingsStore;
 use mail_accounts::commands::{
@@ -106,6 +108,9 @@ pub fn run() {
             load_mail_history,
             delete_mail_history,
             clear_mail_history,
+            load_api_keys,
+            save_api_key,
+            delete_api_key,
             load_notification_config,
             save_notification_settings,
             set_node_admin_key,

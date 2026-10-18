@@ -1,8 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use super::oauth::config::OAuthConfig;
-use super::oauth::{google, outlook};
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum MailProvider {
@@ -11,10 +8,10 @@ pub enum MailProvider {
 }
 
 impl MailProvider {
-    pub fn oauth_config(self) -> Result<OAuthConfig, String> {
+    pub fn redirect_host(self) -> &'static str {
         match self {
-            Self::Google => google::config(),
-            Self::Outlook => outlook::config(),
+            Self::Google => "127.0.0.1",
+            Self::Outlook => "localhost",
         }
     }
 }

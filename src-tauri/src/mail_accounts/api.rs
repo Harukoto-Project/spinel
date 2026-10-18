@@ -4,8 +4,7 @@ use reqwest::{Method, StatusCode};
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 
-use super::model::{AccountsResponse, MailAccountView, MailSettings};
-use super::oauth::config::OAuthGrant;
+use super::model::{AccountsResponse, MailAccountView, MailSettings, OAuthStartResponse};
 use super::provider::MailProvider;
 use crate::notifications::api::ApiError;
 
@@ -67,7 +66,7 @@ pub(crate) async fn send<T: DeserializeOwned>(
             let text = response.text().await.unwrap_or_default();
             let message = server_message(&text).unwrap_or_else(|| {
                 if other == StatusCode::NOT_FOUND {
-                    "ノードがメール機能に対応していません。サーバーを更新してください".to_string()
+                    "ノードがこの機能に対応していません。サーバーを更新してください".to_string()
                 } else {
                     format!("ノードがエラーを返しました({other})")
                 }
@@ -82,19 +81,39 @@ pub async fn list_accounts(target: &NodeTarget) -> Result<Vec<MailAccountView>, 
     Ok(response.accounts)
 }
 
-pub async fn connect_account(
+pub async fn start_oauth(
     target: &NodeTarget,
     provider: MailProvider,
-    grant: OAuthGrant,
+    redirect_uri: &str,
+    state: &str,
+    code_challenge: &str,
+) -> Result<String, ApiError> {
+    let body = json!({
+        "provider": provider,
+        "redirectUri": redirect_uri,
+        "state": state,
+        "codeChallenge": code_challenge,
+    });
+    let response: OAuthStartResponse =
+        send(target, Method::POST, "/mail/oauth/start", Some(body)).await?;
+    Ok(response.auth_url)
+}
+
+pub async fn complete_oauth(
+    target: &NodeTarget,
+    provider: MailProvider,
+    code: &str,
+    code_verifier: &str,
+    redirect_uri: &str,
 ) -> Result<Vec<MailAccountView>, ApiError> {
     let body = json!({
         "provider": provider,
-        "email": grant.identity.email,
-        "name": grant.identity.name,
-        "refreshToken": grant.refresh_token,
+        "code": code,
+        "codeVerifier": code_verifier,
+        "redirectUri": redirect_uri,
     });
     let response: AccountsResponse =
-        send(target, Method::POST, "/mail/accounts", Some(body)).await?;
+        send(target, Method::POST, "/mail/oauth/complete", Some(body)).await?;
     Ok(response.accounts)
 }
 

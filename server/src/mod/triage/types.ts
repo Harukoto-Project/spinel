@@ -9,6 +9,11 @@ export interface TriageConfig {
   claudeBodyChars: number;
 }
 
+export interface TriageKeys {
+  typesafe: string;
+  anthropic: string;
+}
+
 export interface JevScore {
   junk: number;
   actionRequired: number;

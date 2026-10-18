@@ -17,8 +17,9 @@ export class JevScorer {
   public constructor(
     model: string,
     private readonly bodyChars: number,
+    apiKey: string,
   ) {
-    this.client = new TypeSafeClient({ defaultModel: model });
+    this.client = new TypeSafeClient({ defaultModel: model, apiKey });
   }
 
   public async score(mail: Mail): Promise<JevScore> {

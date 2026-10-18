@@ -21,7 +21,7 @@ export interface MailPollerDeps {
   settings: MailSettingsStore;
   processed: ProcessedStore;
   history: MailHistoryStore;
-  getTriage: () => Triage;
+  getTriage: () => Promise<Triage | null>;
   publish: (payload: NotificationPayload) => number;
   logger: Logger;
 }
@@ -81,6 +81,14 @@ export class MailPoller {
   }
 
   private async pollAll(): Promise<void> {
+    const triage = await this.deps.getTriage();
+    if (triage === null) {
+      this.deps.logger.warn(
+        'TypeSafe / Anthropic の API キーが未設定のため、メールの確認を保留します(アプリの「APIキーの設定」から保存してください)',
+      );
+      return;
+    }
+
     for (const account of await this.deps.accounts.list()) {
       if (this.stopped) return;
       if (!account.connected) continue;
@@ -89,7 +97,7 @@ export class MailPoller {
       if (!provider || !provider.configured) continue;
 
       try {
-        await this.pollAccount(account, provider);
+        await this.pollAccount(account, provider, triage);
       } catch (error) {
         await this.recordFailure(account, error);
       }
@@ -107,7 +115,7 @@ export class MailPoller {
     });
   }
 
-  private async pollAccount(account: StoredMailAccount, provider: MailProvider): Promise<void> {
+  private async pollAccount(account: StoredMailAccount, provider: MailProvider, triage: Triage): Promise<void> {
     if (account.cursor === null) {
       const cursor = await provider.initCursor(account);
       await this.deps.accounts.update(account.id, { cursor, lastCheckedAt: Date.now(), lastError: null });
@@ -121,7 +129,7 @@ export class MailPoller {
     for (const mail of mails) {
       if (this.stopped) return;
       if (await this.deps.processed.has(mail.id)) continue;
-      if (!(await this.process(account, mail))) complete = false;
+      if (!(await this.process(account, mail, triage))) complete = false;
     }
 
     await this.deps.accounts.update(account.id, {
@@ -131,9 +139,9 @@ export class MailPoller {
     });
   }
 
-  private async process(account: StoredMailAccount, mail: Mail): Promise<boolean> {
+  private async process(account: StoredMailAccount, mail: Mail, triage: Triage): Promise<boolean> {
     try {
-      await this.judge(account, mail);
+      await this.judge(account, mail, triage);
       this.attempts.delete(mail.id);
       await this.deps.processed.add(mail.id);
       return true;
@@ -151,8 +159,8 @@ export class MailPoller {
     }
   }
 
-  private async judge(account: StoredMailAccount, mail: Mail): Promise<void> {
-    const result = await this.deps.getTriage().run(mail);
+  private async judge(account: StoredMailAccount, mail: Mail, triage: Triage): Promise<void> {
+    const result = await triage.run(mail);
     this.deps.logger.info(
       `[${result.decision}] by ${result.decidedBy} relevance=${result.jev.relevance.toFixed(2)} junk=${result.jev.junk.toFixed(2)} action=${result.jev.actionRequired.toFixed(2)} deadline=${result.jev.hasDeadline.toFixed(2)} importance=${result.jev.importance.toFixed(2)} | ${mail.from} | ${mail.subject}`,
     );
