@@ -10,7 +10,9 @@ export class ProcessedStore {
   public constructor(private readonly db: Queryable) {}
 
   public async has(id: string): Promise<boolean> {
-    const rows = await queryRows<ProcessedRow>(this.db, 'SELECT 1 AS found FROM mail_processed WHERE mail_id = ?', [id]);
+    const rows = await queryRows<ProcessedRow>(this.db, 'SELECT 1 AS found FROM mail_processed WHERE mail_id = ?', [
+      id,
+    ]);
     return rows.length > 0;
   }
 

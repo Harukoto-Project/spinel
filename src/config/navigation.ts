@@ -53,7 +53,7 @@ export const NAV_ITEMS: NavItemConfig[] = [
     icon: Settings,
     group: '設定',
     position: 'bottom',
-  }
+  },
 ];
 
 export const DEFAULT_NAV_ID = NAV_ITEMS[0].id;

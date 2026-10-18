@@ -56,11 +56,9 @@ export class MailAccountStore {
   }
 
   public async get(id: string): Promise<StoredMailAccount | undefined> {
-    const [row] = await queryRows<MailAccountRow>(
-      this.db,
-      `SELECT ${SELECT_COLUMNS} FROM mail_accounts WHERE id = ?`,
-      [id],
-    );
+    const [row] = await queryRows<MailAccountRow>(this.db, `SELECT ${SELECT_COLUMNS} FROM mail_accounts WHERE id = ?`, [
+      id,
+    ]);
     return row ? toAccount(row) : undefined;
   }
 

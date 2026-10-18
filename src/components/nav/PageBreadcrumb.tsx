@@ -16,7 +16,7 @@ export function PageBreadcrumb({ trail }: PageBreadcrumbProps) {
   if (trail.length === 0) return null;
 
   return (
-    <Breadcrumb className="min-w-0">
+    <Breadcrumb className="pointer-events-none min-w-0 select-none">
       <BreadcrumbList className="flex-nowrap">
         {trail.map((item, index) => {
           const isLast = index === trail.length - 1;

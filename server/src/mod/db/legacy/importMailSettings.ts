@@ -6,7 +6,8 @@ export const mailSettingsImporter: LegacyImporter = {
   file: 'mail-settings.json',
   table: 'mail_settings',
   async run(connection, data) {
-    const interval = typeof data === 'object' && data !== null && 'pollIntervalSec' in data ? data.pollIntervalSec : null;
+    const interval =
+      typeof data === 'object' && data !== null && 'pollIntervalSec' in data ? data.pollIntervalSec : null;
     if (!isValidPollInterval(interval)) {
       throw new Error('メール設定ファイルの形式が正しくありません');
     }

@@ -50,10 +50,10 @@ Spinelは、デスクトップに常駐して、日々の細かい作業をAIに
 
 ## 機能
 
-| 機能 | 状況 |
-| --- | --- |
-| メールの仕分けと通知 | 利用できます |
-| その他の機能 | 順次追加していく予定です |
+| 機能                 | 状況                     |
+| -------------------- | ------------------------ |
+| メールの仕分けと通知 | 利用できます             |
+| その他の機能         | 順次追加していく予定です |
 
 ### メールの仕分けと通知
 
@@ -147,12 +147,12 @@ flowchart LR
 
 先に次のものを用意してください。
 
-| 対象 | 用意するもの |
-| --- | --- |
-| 共通 | Node.js 22以上、Yarn |
-| アプリ | Rustと[Tauriの前提環境](https://tauri.app/start/prerequisites/) |
-| ノード | MySQL。データベースは先に作っておく |
-| AI | TypeSafeとAnthropicのAPIキー |
+| 対象       | 用意するもの                                                                                                   |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| 共通       | Node.js 22以上、Yarn                                                                                           |
+| アプリ     | Rustと[Tauriの前提環境](https://tauri.app/start/prerequisites/)                                                |
+| ノード     | MySQL。データベースは先に作っておく                                                                            |
+| AI         | TypeSafeとAnthropicのAPIキー                                                                                   |
 | メール連携 | Google CloudのOAuthクライアント(デスクトップアプリ種別)。Outlookを使うならMicrosoft Entra IDに登録したアプリも |
 
 ### 1. ノードを起動する
@@ -165,16 +165,16 @@ cp .env.example .env
 
 PowerShellでは`cp`の代わりに`copy`を使います。`.env`で設定する項目は次のとおりです。
 
-| 変数 | 内容 |
-| --- | --- |
-| `DATABASE_URL` | 必須。`mysql://user:password@host:3306/database`の形式 |
-| `TYPESAFE_API_KEY`, `ANTHROPIC_API_KEY` | AI判定に使うAPIキー。省略して、アプリの「APIキーの設定」から保存することもできる(その場合は保存した値が優先される) |
-| `JEV_MODEL`, `CLAUDE_MODEL` | 使うモデル |
-| `HOST`, `PORT` | 待ち受け先。既定は0.0.0.0と8787 |
-| `ADMIN_KEY` | 管理キーを固定したいときだけ。省略すると自動で生成される |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | メール連携でGmailを使うなら両方必要。アプリ側には設定しない |
-| `OUTLOOK_CLIENT_ID` | メール連携でOutlookを使うなら設定する。シークレットは不要。アプリ側には設定しない |
-| `IGNORE_BELOW`, `NOTIFY_ABOVE` | メールを除外する閾値と通知する閾値。既定は0.2と0.7 |
+| 変数                                       | 内容                                                                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `DATABASE_URL`                             | 必須。`mysql://user:password@host:3306/database`の形式                                                             |
+| `TYPESAFE_API_KEY`, `ANTHROPIC_API_KEY`    | AI判定に使うAPIキー。省略して、アプリの「APIキーの設定」から保存することもできる(その場合は保存した値が優先される) |
+| `JEV_MODEL`, `CLAUDE_MODEL`                | 使うモデル                                                                                                         |
+| `HOST`, `PORT`                             | 待ち受け先。既定は0.0.0.0と8787                                                                                    |
+| `ADMIN_KEY`                                | 管理キーを固定したいときだけ。省略すると自動で生成される                                                           |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | メール連携でGmailを使うなら両方必要。アプリ側には設定しない                                                        |
+| `OUTLOOK_CLIENT_ID`                        | メール連携でOutlookを使うなら設定する。シークレットは不要。アプリ側には設定しない                                  |
+| `IGNORE_BELOW`, `NOTIFY_ABOVE`             | メールを除外する閾値と通知する閾値。既定は0.2と0.7                                                                 |
 
 ```bash
 yarn dev
@@ -236,12 +236,12 @@ yarn tauri dev
 
 [Microsoft Entra ID](https://entra.microsoft.com/)でアプリを登録します。
 
-| 項目 | 設定 |
-| --- | --- |
-| サポートされるアカウントの種類 | 任意の組織ディレクトリ内のアカウントと個人のMicrosoftアカウント |
-| プラットフォーム | モバイルとデスクトップ アプリケーション |
-| リダイレクトURI | `http://localhost` |
-| APIのアクセス許可 | Microsoft Graphの委任で`Mail.Read`、`User.Read`、`offline_access` |
+| 項目                           | 設定                                                              |
+| ------------------------------ | ----------------------------------------------------------------- |
+| サポートされるアカウントの種類 | 任意の組織ディレクトリ内のアカウントと個人のMicrosoftアカウント   |
+| プラットフォーム               | モバイルとデスクトップ アプリケーション                           |
+| リダイレクトURI                | `http://localhost`                                                |
+| APIのアクセス許可              | Microsoft Graphの委任で`Mail.Read`、`User.Read`、`offline_access` |
 
 パブリッククライアントなのでシークレットは不要です。`OUTLOOK_CLIENT_ID`だけをノードの`.env`に設定してください。組織アカウントでは、テナントの設定によって管理者の同意が求められることがあります。
 

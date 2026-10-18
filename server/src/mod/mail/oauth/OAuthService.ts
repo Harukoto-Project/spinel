@@ -128,11 +128,15 @@ export class OAuthService {
     }
     return {
       accessToken: record.access_token,
-      refreshToken: typeof record.refresh_token === 'string' && record.refresh_token !== '' ? record.refresh_token : null,
+      refreshToken:
+        typeof record.refresh_token === 'string' && record.refresh_token !== '' ? record.refresh_token : null,
     };
   }
 
-  private async fetchIdentity(config: OAuthProviderConfig, accessToken: string): Promise<{ email: string; name: string }> {
+  private async fetchIdentity(
+    config: OAuthProviderConfig,
+    accessToken: string,
+  ): Promise<{ email: string; name: string }> {
     let response: Response;
     try {
       response = await fetch(config.userinfoUrl, {

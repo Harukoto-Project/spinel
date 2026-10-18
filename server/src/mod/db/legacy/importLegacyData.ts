@@ -28,7 +28,10 @@ export const importLegacyData = async (db: Db, dataDir: string, logger: Logger):
     if (!TABLE_NAME_PATTERN.test(importer.table)) throw new Error(`不正なテーブル名です: ${importer.table}`);
 
     const count = await withTransaction(db, async (connection) => {
-      const existing = await queryRows<{ found: number }>(connection, `SELECT 1 AS found FROM ${importer.table} LIMIT 1`);
+      const existing = await queryRows<{ found: number }>(
+        connection,
+        `SELECT 1 AS found FROM ${importer.table} LIMIT 1`,
+      );
       if (existing.length > 0) return null;
       return importer.run(connection, data);
     });

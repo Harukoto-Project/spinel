@@ -20,7 +20,9 @@ export function ClearMailHistoryDialog({ open, onOpenChange, onConfirm }: ClearM
       <DialogContent>
         <DialogHeader>
           <DialogTitle>履歴をすべて削除しますか?</DialogTitle>
-          <DialogDescription>このノードに保存されているメールの処理履歴(通知・除外)をすべて削除します。</DialogDescription>
+          <DialogDescription>
+            このノードに保存されているメールの処理履歴(通知・除外)をすべて削除します。
+          </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button className="cursor-pointer" variant="outline" onClick={() => onOpenChange(false)}>

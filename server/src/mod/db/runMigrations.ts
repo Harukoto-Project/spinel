@@ -21,7 +21,9 @@ export const runMigrations = async (db: Db, logger: Logger): Promise<void> => {
       LOCK_TIMEOUT_SEC,
     ]);
     if (lock?.acquired !== 1) {
-      throw new Error('データベースのマイグレーションのロックを取得できませんでした(他のサーバーが実行中の可能性があります)');
+      throw new Error(
+        'データベースのマイグレーションのロックを取得できませんでした(他のサーバーが実行中の可能性があります)',
+      );
     }
 
     try {

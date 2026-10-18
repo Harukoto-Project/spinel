@@ -18,7 +18,7 @@ type SidebarProps = {
 export function Sidebar({ activeId, onSelect }: SidebarProps) {
   return (
     <SidebarRoot collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader data-tauri-drag-region>
         <SidebarBrand title={APP_NAME} version={APP_VERSION} commitHash={APP_COMMIT_HASH} />
       </SidebarHeader>
       <SidebarContent>

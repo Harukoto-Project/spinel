@@ -1,4 +1,10 @@
-import mysql, { type Connection, type Pool, type PoolConnection, type ResultSetHeader, type RowDataPacket } from 'mysql2/promise';
+import mysql, {
+  type Connection,
+  type Pool,
+  type PoolConnection,
+  type ResultSetHeader,
+  type RowDataPacket,
+} from 'mysql2/promise';
 
 export type Db = Pool;
 export type Queryable = Connection;

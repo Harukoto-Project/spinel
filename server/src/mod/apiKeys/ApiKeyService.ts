@@ -1,12 +1,6 @@
 import { HttpError } from '../http/HttpError.js';
 import type { ApiKeyStore } from './ApiKeyStore.js';
-import {
-  API_KEY_IDS,
-  API_KEY_VALUE_MAX,
-  type ApiKeyEnvValues,
-  type ApiKeyId,
-  type ApiKeyStatusMap,
-} from './types.js';
+import { API_KEY_IDS, API_KEY_VALUE_MAX, type ApiKeyEnvValues, type ApiKeyId, type ApiKeyStatusMap } from './types.js';
 
 type Listener = () => void;
 

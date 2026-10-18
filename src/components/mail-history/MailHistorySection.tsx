@@ -42,10 +42,7 @@ export function MailHistorySection({ nodeId }: MailHistorySectionProps) {
   );
   const columns = useMemo(() => createMailHistoryColumns(), []);
   const accountOptions = useMemo(() => buildAccountOptions(items), [items]);
-  const filtered = useMemo(
-    () => filterMailHistory(items, debouncedQuery, filters),
-    [items, debouncedQuery, filters],
-  );
+  const filtered = useMemo(() => filterMailHistory(items, debouncedQuery, filters), [items, debouncedQuery, filters]);
 
   return (
     <section className="flex flex-col gap-4">
