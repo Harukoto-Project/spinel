@@ -13,7 +13,7 @@ pub fn show(
     payload: &NotificationPayload,
     settings: &NotificationSettings,
 ) -> Result<(), String> {
-    let reveal = settings.show_content || payload.kind == Kind::Test;
+    let reveal = settings.show_content || matches!(payload.kind, Kind::Test | Kind::Plugin);
     let (title, body) = if reveal {
         (payload.title.clone(), payload.body.clone())
     } else {

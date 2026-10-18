@@ -14,7 +14,9 @@ import { registerMailSettingsRoute } from './mailSettings.js';
 import { registerNotificationSocketRoute } from './notificationSocket.js';
 import { registerNotificationTestRoute } from './notificationTest.js';
 import { registerNotificationTokenRoute } from './notificationToken.js';
+import { registerPluginDispatchRoute } from './pluginDispatch.js';
 import { registerPluginRepositoriesRoute } from './pluginRepositories.js';
+import { registerPluginsRoute } from './plugins.js';
 
 export interface RouteDeps {
   health: HealthService;
@@ -36,4 +38,6 @@ export const registerRoutes = (app: FastifyInstance, deps: RouteDeps): void => {
   registerMailHistoryRoute(app, deps);
   registerApiKeysRoute(app, deps);
   registerPluginRepositoriesRoute(app, deps);
+  registerPluginsRoute(app, deps);
+  registerPluginDispatchRoute(app, deps);
 };

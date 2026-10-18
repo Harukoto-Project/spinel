@@ -33,6 +33,8 @@ import { MailSettingsStore } from './mail/settings/MailSettingsStore.js';
 import { NotificationHub } from './notifications/NotificationHub.js';
 import { GitClient } from './plugins/GitClient.js';
 import { PluginInstaller } from './plugins/PluginInstaller.js';
+import { PluginLoader } from './plugins/PluginLoader.js';
+import { PluginProcessManager } from './plugins/process/PluginProcessManager.js';
 import { PluginService } from './plugins/PluginService.js';
 import { registerRoutes } from './routes/index.js';
 import { loadAppVersion } from './system/appVersion.js';
@@ -121,17 +123,25 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
   app.addHook('onReady', async () => poller.start());
   app.addHook('onClose', async () => poller.stop());
 
+  const pluginInstaller = new PluginInstaller(path.resolve(config.dataDir, 'plugins', 'repos'), new GitClient());
+  const pluginLoader = new PluginLoader({
+    db,
+    installer: pluginInstaller,
+    processes: new PluginProcessManager(logger),
+    publish: (payload) => hub.publish(payload),
+    logger,
+  });
+  const pluginService = new PluginService(db, pluginInstaller, pluginLoader, logger);
+  app.addHook('onReady', async () => pluginLoader.loadAll());
+  app.addHook('onClose', async () => pluginLoader.unloadAll());
+
   registerRoutes(app, {
     health: new HealthService(version),
     auth: new AuthService(adminKeys, new TokenStore(), new FailureLimiter()),
     hub,
     mail: new MailService(accounts, providers, settings, history, oauth),
     apiKeys,
-    plugins: new PluginService(
-      db,
-      new PluginInstaller(path.resolve(config.dataDir, 'plugins', 'repos'), new GitClient()),
-      logger,
-    ),
+    plugins: pluginService,
   });
 
   return app;

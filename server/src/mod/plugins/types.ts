@@ -95,6 +95,25 @@ export interface PluginRepositoryView {
   plugins: PluginSummaryView[];
 }
 
+export type PluginStatus = 'disabled' | 'active' | 'error';
+
+export interface PluginView {
+  id: string;
+  repoId: string;
+  name: string;
+  version: string;
+  description: string | null;
+  hasServer: boolean;
+  hasFront: boolean;
+  enabled: boolean;
+  status: PluginStatus;
+  errorMessage: string | null;
+  restartRequired: boolean;
+  permissions: PluginPermissions;
+  grantedPermissions: PluginPermissions | null;
+  settings: PluginSettingSchema[];
+}
+
 export interface PluginSummaryView {
   id: string;
   name: string;

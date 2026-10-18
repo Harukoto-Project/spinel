@@ -1,12 +1,20 @@
 import { withTransaction, type Db } from '../db/Database.js';
 import { HttpError } from '../http/HttpError.js';
 import type { Logger } from '../logger.js';
-import { isPermissionCovered } from './permissions.js';
-import type { PluginInstaller, FetchedRepository } from './PluginInstaller.js';
+import type { RouteMatch } from './context/PluginRouter.js';
+import { isPermissionCovered, isSamePermissions, normalizePermissions } from './permissions.js';
+import type { FetchedRepository, PluginInstaller } from './PluginInstaller.js';
+import type { PluginLoader } from './PluginLoader.js';
 import { PluginStore } from './PluginStore.js';
 import { normalizeRepositoryUrl, repositoryIdOf } from './repositoryUrl.js';
 import { RepositoryStore } from './RepositoryStore.js';
-import type { PluginRecord, PluginRepositoryRecord, PluginRepositoryView } from './types.js';
+import type {
+  PluginPermissions,
+  PluginRecord,
+  PluginRepositoryRecord,
+  PluginRepositoryView,
+  PluginView,
+} from './types.js';
 
 export class PluginService {
   private queue: Promise<unknown> = Promise.resolve();
@@ -14,12 +22,23 @@ export class PluginService {
   public constructor(
     private readonly db: Db,
     private readonly installer: PluginInstaller,
+    private readonly loader: PluginLoader,
     private readonly logger: Logger,
   ) {}
 
+  public findRoute(id: string, method: string, subPath: string): RouteMatch | null {
+    return this.loader.findRoute(id, method, subPath);
+  }
+
   public async listRepositories(): Promise<PluginRepositoryView[]> {
     const [repositories, plugins] = await Promise.all([new RepositoryStore(this.db).list(), new PluginStore(this.db).list()]);
-    return repositories.map((repository) => toView(repository, plugins));
+    return repositories.map((repository) => toRepositoryView(repository, plugins));
+  }
+
+  public async listPlugins(): Promise<PluginView[]> {
+    const [repositories, plugins] = await Promise.all([new RepositoryStore(this.db).list(), new PluginStore(this.db).list()]);
+    const shas = new Map(repositories.map((repository) => [repository.id, repository.installedSha]));
+    return plugins.map((plugin) => this.toPluginView(plugin, shas.get(plugin.repoId) ?? null));
   }
 
   public addRepository(rawUrl: string): Promise<PluginRepositoryView[]> {
@@ -64,6 +83,7 @@ export class PluginService {
     return this.serialize(async () => {
       const repository = await this.requireRepository(id);
       const fetched = await this.installer.fetch(repository.url);
+      const toUnload: string[] = [];
       try {
         if (fetched.sha === repository.installedSha) return await this.listRepositories();
 
@@ -81,6 +101,7 @@ export class PluginService {
               continue;
             }
             const keep = keepsGrant(current, manifest.permissions);
+            if (!keep && current.enabled) toUnload.push(current.id);
             await plugins.updateSource(manifest.id, {
               path: summary.path,
               manifest,
@@ -90,6 +111,7 @@ export class PluginService {
             });
             existing.delete(manifest.id);
           }
+          toUnload.push(...existing.keys());
           await plugins.removeByIds([...existing.keys()]);
 
           await repositories.update(id, { name: fetched.contents.index.name, installedSha: fetched.sha, updatedAt: now });
@@ -99,6 +121,7 @@ export class PluginService {
         await this.installer.discard(fetched);
       }
 
+      for (const pluginId of toUnload) await this.loader.unload(pluginId);
       this.logger.info(`プラグインのリポジトリを更新しました: ${repository.url}`);
       return this.listRepositories();
     });
@@ -107,6 +130,8 @@ export class PluginService {
   public removeRepository(id: string): Promise<PluginRepositoryView[]> {
     return this.serialize(async () => {
       const repository = await this.requireRepository(id);
+      for (const plugin of await new PluginStore(this.db).listByRepository(id)) await this.loader.unload(plugin.id);
+
       await new RepositoryStore(this.db).remove(id);
       await this.installer.remove(id).catch((error: unknown) => {
         this.logger.error(`プラグインのリポジトリのファイルを削除できませんでした: ${repository.url}`, error);
@@ -116,10 +141,68 @@ export class PluginService {
     });
   }
 
+  public enablePlugin(id: string, granted: PluginPermissions): Promise<PluginView[]> {
+    return this.serialize(async () => {
+      const plugin = await this.requirePlugin(id);
+      const grantedPermissions = normalizePermissions(granted);
+      if (!isSamePermissions(grantedPermissions, plugin.manifest.permissions)) {
+        throw new HttpError(
+          400,
+          'permissions_mismatch',
+          'プラグインが宣言している権限と、許可された権限が一致しません。権限を確認し直してください',
+        );
+      }
+
+      const store = new PluginStore(this.db);
+      await this.loader.unload(id);
+      await store.setEnabled(id, true, grantedPermissions);
+      await this.loader.load({ ...plugin, enabled: true, grantedPermissions });
+      this.logger.info(`プラグインを有効化しました: ${id}`);
+      return this.listPlugins();
+    });
+  }
+
+  public disablePlugin(id: string): Promise<PluginView[]> {
+    return this.serialize(async () => {
+      await this.requirePlugin(id);
+      await this.loader.unload(id);
+      await new PluginStore(this.db).setEnabled(id, false, null);
+      this.logger.info(`プラグインを無効化しました: ${id}`);
+      return this.listPlugins();
+    });
+  }
+
+  private toPluginView(plugin: PluginRecord, repositorySha: string | null): PluginView {
+    const { manifest } = plugin;
+    const loadedSha = this.loader.loadedSha(plugin.id);
+    return {
+      id: plugin.id,
+      repoId: plugin.repoId,
+      name: manifest.name,
+      version: plugin.installedVersion,
+      description: manifest.description,
+      hasServer: manifest.server !== null,
+      hasFront: manifest.front !== null,
+      enabled: plugin.enabled,
+      status: !plugin.enabled ? 'disabled' : plugin.errorMessage !== null ? 'error' : 'active',
+      errorMessage: plugin.errorMessage,
+      restartRequired: loadedSha !== null && repositorySha !== null && loadedSha !== repositorySha,
+      permissions: manifest.permissions,
+      grantedPermissions: plugin.grantedPermissions,
+      settings: manifest.settings,
+    };
+  }
+
   private async requireRepository(id: string): Promise<PluginRepositoryRecord> {
     const repository = await new RepositoryStore(this.db).get(id);
     if (repository === null) throw new HttpError(404, 'repository_not_found', 'リポジトリが見つかりません');
     return repository;
+  }
+
+  private async requirePlugin(id: string): Promise<PluginRecord> {
+    const plugin = await new PluginStore(this.db).get(id);
+    if (plugin === null) throw new HttpError(404, 'plugin_not_found', 'プラグインが見つかりません');
+    return plugin;
   }
 
   private async assertNoIdConflict(plugins: PluginStore, fetched: FetchedRepository, repoId: string): Promise<void> {
@@ -141,10 +224,10 @@ export class PluginService {
   }
 }
 
-const keepsGrant = (current: PluginRecord, next: PluginRecord['manifest']['permissions']): boolean =>
+const keepsGrant = (current: PluginRecord, next: PluginPermissions): boolean =>
   current.grantedPermissions === null || isPermissionCovered(next, current.grantedPermissions);
 
-const toView = (repository: PluginRepositoryRecord, plugins: readonly PluginRecord[]): PluginRepositoryView => ({
+const toRepositoryView = (repository: PluginRepositoryRecord, plugins: readonly PluginRecord[]): PluginRepositoryView => ({
   id: repository.id,
   url: repository.url,
   name: repository.name,

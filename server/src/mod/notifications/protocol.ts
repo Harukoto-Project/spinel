@@ -6,7 +6,7 @@ export const NOTIFICATION_SOCKET_PATH = '/notifications/ws';
 
 export type NotificationPriority = 'normal' | 'urgent';
 
-export type NotificationKind = 'mail' | 'test';
+export type NotificationKind = 'mail' | 'test' | 'plugin';
 
 export interface MailDetail {
   account: string;

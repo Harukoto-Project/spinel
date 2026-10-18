@@ -30,6 +30,28 @@ const toRecord = (row: PluginRow): PluginRecord => ({
   updatedAt: Number(row.updated_at),
 });
 
+interface SettingsRow {
+  config: string | null;
+  secrets: string | null;
+}
+
+export interface StoredSettings {
+  values: Record<string, unknown>;
+  secrets: Record<string, unknown>;
+}
+
+const parseObject = (raw: string | null): Record<string, unknown> => {
+  if (raw === null) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
+  }
+};
+
 export interface PluginInsert {
   id: string;
   repoId: string;
@@ -111,6 +133,26 @@ export class PluginStore {
         id,
       ],
     );
+  }
+
+  public async getStoredSettings(id: string): Promise<StoredSettings> {
+    const [row] = await queryRows<SettingsRow>(this.db, 'SELECT config, secrets FROM plugins WHERE id = ?', [id]);
+    return {
+      values: parseObject(row?.config ?? null),
+      secrets: parseObject(row?.secrets ?? null),
+    };
+  }
+
+  public async setEnabled(id: string, enabled: boolean, grantedPermissions: PluginPermissions | null): Promise<void> {
+    await execute(
+      this.db,
+      'UPDATE plugins SET enabled = ?, granted_permissions = ?, error_message = NULL, updated_at = ? WHERE id = ?',
+      [enabled ? 1 : 0, grantedPermissions === null ? null : JSON.stringify(grantedPermissions), Date.now(), id],
+    );
+  }
+
+  public async setError(id: string, message: string | null): Promise<void> {
+    await execute(this.db, 'UPDATE plugins SET error_message = ? WHERE id = ?', [message, id]);
   }
 
   public async removeByIds(ids: readonly string[]): Promise<void> {

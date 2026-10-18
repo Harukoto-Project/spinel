@@ -15,6 +15,7 @@ pub enum Priority {
 pub enum Kind {
     Mail,
     Test,
+    Plugin,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
