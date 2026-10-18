@@ -1,4 +1,4 @@
-﻿import { History, Key, LayoutDashboard, Mail, Settings, type LucideIcon } from 'lucide-react';
+﻿import { Container, History, Key, LayoutDashboard, Mail, Settings, type LucideIcon } from 'lucide-react';
 
 export type NavPosition = 'top' | 'bottom';
 
@@ -32,6 +32,14 @@ export const NAV_ITEMS: NavItemConfig[] = [
     icon: History,
     group: 'メール',
     searchable: true,
+  },
+  {
+    id: 'plugins',
+    label: 'プラグインの管理',
+    icon: Container,
+    group: 'プラグイン',
+    searchable: true,
+    position: 'bottom',
   },
   {
     id: 'mail-accounts',
