@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/sidebar';
 import { getNavGroupsByPosition } from '@/config/navigation';
 import { APP_COMMIT_HASH, APP_NAME, APP_VERSION } from '@/config/app';
+import { useNavItems } from '@/hooks/use-nav-items';
 
 type SidebarProps = {
   activeId: string;
@@ -16,13 +17,15 @@ type SidebarProps = {
 };
 
 export function Sidebar({ activeId, onSelect }: SidebarProps) {
+  const navItems = useNavItems();
+
   return (
     <SidebarRoot collapsible="icon">
       <SidebarHeader data-tauri-drag-region>
         <SidebarBrand title={APP_NAME} version={APP_VERSION} commitHash={APP_COMMIT_HASH} />
       </SidebarHeader>
       <SidebarContent>
-        {getNavGroupsByPosition('top').map((group) => (
+        {getNavGroupsByPosition('top', navItems).map((group) => (
           <NavList
             key={group.label ?? 'top'}
             label={group.label}
@@ -33,7 +36,7 @@ export function Sidebar({ activeId, onSelect }: SidebarProps) {
         ))}
       </SidebarContent>
       <SidebarFooter>
-        {getNavGroupsByPosition('bottom').map((group) => (
+        {getNavGroupsByPosition('bottom', navItems).map((group) => (
           <NavList
             key={group.label ?? 'bottom'}
             label={group.label}

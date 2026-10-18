@@ -31,7 +31,7 @@ use notifications::settings_store::NotificationSettingsStore;
 use plugins::commands::{
     add_plugin_repository, delete_plugin_repository, disable_plugin, enable_plugin,
     fetch_plugin_asset, load_plugin_repositories, load_plugins, refresh_plugin_repository,
-    save_plugin_settings,
+    request_plugin_api, save_plugin_settings,
 };
 
 const NODES_FILE: &str = "nodes.json";
@@ -133,7 +133,8 @@ pub fn run() {
             enable_plugin,
             disable_plugin,
             save_plugin_settings,
-            fetch_plugin_asset
+            fetch_plugin_asset,
+            request_plugin_api
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

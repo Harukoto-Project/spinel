@@ -66,8 +66,8 @@ export const NAV_ITEMS: NavItemConfig[] = [
 
 export const DEFAULT_NAV_ID = NAV_ITEMS[0].id;
 
-export function getNavItemsByPosition(position: NavPosition): NavItemConfig[] {
-  return NAV_ITEMS.filter((item) => (item.position ?? 'top') === position);
+export function getNavItemsByPosition(position: NavPosition, items: NavItemConfig[] = NAV_ITEMS): NavItemConfig[] {
+  return items.filter((item) => (item.position ?? 'top') === position);
 }
 
 export type NavGroupConfig = {
@@ -75,10 +75,13 @@ export type NavGroupConfig = {
   items: NavItemConfig[];
 };
 
-export function getNavGroupsByPosition(position: NavPosition): NavGroupConfig[] {
+export function getNavGroupsByPosition(
+  position: NavPosition,
+  items: NavItemConfig[] = NAV_ITEMS,
+): NavGroupConfig[] {
   const groups: NavGroupConfig[] = [];
 
-  for (const item of getNavItemsByPosition(position)) {
+  for (const item of getNavItemsByPosition(position, items)) {
     const existing = groups.find((group) => group.label === item.group);
     if (existing) {
       existing.items.push(item);
@@ -90,20 +93,20 @@ export function getNavGroupsByPosition(position: NavPosition): NavGroupConfig[] 
   return groups;
 }
 
-export function isNavSearchable(id: string): boolean {
-  return NAV_ITEMS.find((item) => item.id === id)?.searchable ?? false;
+export function isNavSearchable(id: string, items: NavItemConfig[] = NAV_ITEMS): boolean {
+  return items.find((item) => item.id === id)?.searchable ?? false;
 }
 
-export function getNavTrail(id: string): NavItemConfig[] {
+export function getNavTrail(id: string, items: NavItemConfig[] = NAV_ITEMS): NavItemConfig[] {
   const trail: NavItemConfig[] = [];
   const visited = new Set<string>();
-  let current = NAV_ITEMS.find((item) => item.id === id);
+  let current = items.find((item) => item.id === id);
 
   while (current && !visited.has(current.id)) {
     visited.add(current.id);
     trail.unshift(current);
     const parentId = current.parentId;
-    current = parentId ? NAV_ITEMS.find((item) => item.id === parentId) : undefined;
+    current = parentId ? items.find((item) => item.id === parentId) : undefined;
   }
 
   return trail;

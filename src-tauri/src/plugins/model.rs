@@ -45,6 +45,7 @@ pub struct PluginView {
     pub description: Option<String>,
     pub has_server: bool,
     pub has_front: bool,
+    pub front_entry: Option<String>,
     pub enabled: bool,
     pub status: String,
     pub error_message: Option<String>,

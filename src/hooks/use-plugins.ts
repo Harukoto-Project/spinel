@@ -12,7 +12,7 @@ import {
 } from '@/services/pluginStorage';
 import type { Plugin, PluginPermissions, PluginRepository, PluginSettingsUpdate } from '@/types/plugin';
 
-export function usePlugins(nodeId: string) {
+export function usePlugins(nodeId: string, onChanged?: () => void) {
   const [repositories, setRepositories] = useState<PluginRepository[]>([]);
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,8 +52,9 @@ export function usePlugins(nodeId: string) {
       setRepositories(await addPluginRepository(nodeId, url));
       setError(null);
       await syncPlugins();
+      onChanged?.();
     },
-    [nodeId, syncPlugins],
+    [nodeId, syncPlugins, onChanged],
   );
 
   const refreshRepository = useCallback(
@@ -62,11 +63,12 @@ export function usePlugins(nodeId: string) {
         setRepositories(await refreshPluginRepository(nodeId, repoId));
         setError(null);
         await syncPlugins();
+        onChanged?.();
       } catch (caught) {
         setError(`リポジトリを更新できませんでした: ${describeError(caught)}`);
       }
     },
-    [nodeId, syncPlugins],
+    [nodeId, syncPlugins, onChanged],
   );
 
   const deleteRepository = useCallback(
@@ -75,19 +77,21 @@ export function usePlugins(nodeId: string) {
         setRepositories(await deletePluginRepository(nodeId, repoId));
         setError(null);
         await syncPlugins();
+        onChanged?.();
       } catch (caught) {
         setError(`リポジトリを削除できませんでした: ${describeError(caught)}`);
       }
     },
-    [nodeId, syncPlugins],
+    [nodeId, syncPlugins, onChanged],
   );
 
   const enable = useCallback(
     async (pluginId: string, grantedPermissions: PluginPermissions) => {
       setPlugins(await enablePlugin(nodeId, pluginId, grantedPermissions));
       setError(null);
+      onChanged?.();
     },
-    [nodeId],
+    [nodeId, onChanged],
   );
 
   const disable = useCallback(
@@ -95,11 +99,12 @@ export function usePlugins(nodeId: string) {
       try {
         setPlugins(await disablePlugin(nodeId, pluginId));
         setError(null);
+        onChanged?.();
       } catch (caught) {
         setError(`プラグインを無効にできませんでした: ${describeError(caught)}`);
       }
     },
-    [nodeId],
+    [nodeId, onChanged],
   );
 
   const saveSettings = useCallback(

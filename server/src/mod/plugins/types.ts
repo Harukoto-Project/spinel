@@ -107,6 +107,7 @@ export interface PluginView {
   description: string | null;
   hasServer: boolean;
   hasFront: boolean;
+  frontEntry: string | null;
   enabled: boolean;
   status: PluginStatus;
   errorMessage: string | null;

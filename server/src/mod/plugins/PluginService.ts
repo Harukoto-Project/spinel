@@ -207,6 +207,7 @@ export class PluginService {
       description: manifest.description,
       hasServer: manifest.server !== null,
       hasFront: manifest.front !== null,
+      frontEntry: manifest.front === null ? null : manifest.front.entry.slice('front/'.length),
       enabled: plugin.enabled,
       status: !plugin.enabled ? 'disabled' : plugin.errorMessage !== null ? 'error' : 'active',
       errorMessage: plugin.errorMessage,

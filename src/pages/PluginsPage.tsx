@@ -3,12 +3,12 @@ import { NodeRequiredNotice } from '@/components/nodes/NodeRequiredNotice';
 import { NodeSelect } from '@/components/nodes/NodeSelect';
 import { PluginsNodeSettings } from '@/components/plugins/PluginsNodeSettings';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useActiveNode } from '@/contexts/ActiveNodeContext';
 import { useNodesContext } from '@/contexts/NodesContext';
-import { useSelectedNode } from '@/hooks/use-selected-node';
 
 export function PluginsPage() {
   const { nodes, loaded } = useNodesContext();
-  const { selectedNode, setSelectedId } = useSelectedNode(nodes);
+  const { activeNode: selectedNode, setActiveNodeId: setSelectedId } = useActiveNode();
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8">

@@ -8,6 +8,7 @@ type PluginsSectionProps = {
   plugins: Plugin[];
   totalCount: number;
   loading?: boolean;
+  frontErrors?: Record<string, string>;
   onEnable: (pluginId: string, grantedPermissions: PluginPermissions) => Promise<void>;
   onDisable: (pluginId: string) => Promise<void>;
   onSaveSettings: (pluginId: string, values: PluginSettingsUpdate) => Promise<void>;
@@ -17,6 +18,7 @@ export function PluginsSection({
   plugins,
   totalCount,
   loading = false,
+  frontErrors = {},
   onEnable,
   onDisable,
   onSaveSettings,
@@ -42,6 +44,7 @@ export function PluginsSection({
             <PluginCard
               key={plugin.id}
               plugin={plugin}
+              frontError={frontErrors[plugin.id] ?? null}
               onEnable={(grantedPermissions) => onEnable(plugin.id, grantedPermissions)}
               onDisable={() => onDisable(plugin.id)}
               onSaveSettings={(values) => onSaveSettings(plugin.id, values)}

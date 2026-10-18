@@ -3,6 +3,7 @@ import { PluginRepositoriesSection } from '@/components/plugins/PluginRepositori
 import { PluginsSection } from '@/components/plugins/PluginsSection';
 import { filterPluginRepositories, filterPlugins } from '@/components/plugins/pluginSearch';
 import { usePageSearch } from '@/contexts/PageSearchContext';
+import { usePluginPages } from '@/contexts/PluginPagesContext';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { usePlugins } from '@/hooks/use-plugins';
 
@@ -13,6 +14,7 @@ type PluginsNodeSettingsProps = {
 };
 
 export function PluginsNodeSettings({ nodeId }: PluginsNodeSettingsProps) {
+  const { errors: frontErrors, reload } = usePluginPages();
   const {
     repositories,
     plugins,
@@ -24,7 +26,7 @@ export function PluginsNodeSettings({ nodeId }: PluginsNodeSettingsProps) {
     enable,
     disable,
     saveSettings,
-  } = usePlugins(nodeId);
+  } = usePlugins(nodeId, reload);
 
   const { query } = usePageSearch();
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
@@ -47,6 +49,7 @@ export function PluginsNodeSettings({ nodeId }: PluginsNodeSettingsProps) {
         plugins={filteredPlugins}
         totalCount={plugins.length}
         loading={busy}
+        frontErrors={frontErrors}
         onEnable={enable}
         onDisable={disable}
         onSaveSettings={saveSettings}

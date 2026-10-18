@@ -106,6 +106,21 @@ pub async fn save_plugin_settings(
 }
 
 #[tauri::command]
+pub async fn request_plugin_api(
+    nodes: State<'_, NodeStore>,
+    node_id: String,
+    plugin_id: String,
+    method: String,
+    path: String,
+    body: Option<Value>,
+) -> Result<Value, String> {
+    let target = resolve_node(&nodes, &node_id)?;
+    api::call_plugin_route(&target, &plugin_id, &method, &path, body)
+        .await
+        .map_err(ApiError::into_message)
+}
+
+#[tauri::command]
 pub async fn fetch_plugin_asset(
     nodes: State<'_, NodeStore>,
     node_id: String,

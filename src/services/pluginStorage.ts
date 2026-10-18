@@ -41,6 +41,22 @@ export function savePluginSettings(
   return invoke<Plugin[]>('save_plugin_settings', { nodeId, pluginId, values });
 }
 
+export function requestPluginApi(
+  nodeId: string,
+  pluginId: string,
+  method: string,
+  path: string,
+  body: unknown,
+): Promise<unknown> {
+  return invoke<unknown>('request_plugin_api', {
+    nodeId,
+    pluginId,
+    method,
+    path,
+    body: body === undefined ? null : body,
+  });
+}
+
 export function fetchPluginAsset(nodeId: string, pluginId: string, path: string): Promise<string> {
   return invoke<string>('fetch_plugin_asset', { nodeId, pluginId, path });
 }

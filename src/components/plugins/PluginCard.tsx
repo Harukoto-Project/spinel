@@ -11,12 +11,13 @@ import type { Plugin, PluginPermissions, PluginSettingsUpdate } from '@/types/pl
 
 type PluginCardProps = {
   plugin: Plugin;
+  frontError?: string | null;
   onEnable: (grantedPermissions: PluginPermissions) => Promise<void>;
   onDisable: () => Promise<void>;
   onSaveSettings: (values: PluginSettingsUpdate) => Promise<void>;
 };
 
-export function PluginCard({ plugin, onEnable, onDisable, onSaveSettings }: PluginCardProps) {
+export function PluginCard({ plugin, frontError = null, onEnable, onDisable, onSaveSettings }: PluginCardProps) {
   const [enableOpen, setEnableOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [disabling, setDisabling] = useState(false);
@@ -55,11 +56,16 @@ export function PluginCard({ plugin, onEnable, onDisable, onSaveSettings }: Plug
           />
         </CardAction>
       </CardHeader>
-      {(plugin.errorMessage || plugin.restartRequired || missingRequired.length > 0) && (
+      {(plugin.errorMessage || frontError || plugin.restartRequired || missingRequired.length > 0) && (
         <CardContent className="flex flex-col gap-2 text-sm">
           {plugin.errorMessage && (
             <p role="alert" className="break-words text-destructive">
               {plugin.errorMessage}
+            </p>
+          )}
+          {frontError && (
+            <p role="alert" className="break-words text-destructive">
+              画面を読み込めませんでした: {frontError}
             </p>
           )}
           {plugin.restartRequired && (
