@@ -1,13 +1,16 @@
+import path from 'node:path';
 import { withTransaction, type Db } from '../db/Database.js';
 import { HttpError } from '../http/HttpError.js';
 import type { Logger } from '../logger.js';
 import type { RouteMatch } from './context/PluginRouter.js';
+import { readFrontAsset, type FrontAsset } from './frontAssets.js';
 import { isPermissionCovered, isSamePermissions, normalizePermissions } from './permissions.js';
 import type { FetchedRepository, PluginInstaller } from './PluginInstaller.js';
 import type { PluginLoader } from './PluginLoader.js';
 import { PluginStore } from './PluginStore.js';
 import { normalizeRepositoryUrl, repositoryIdOf } from './repositoryUrl.js';
 import { RepositoryStore } from './RepositoryStore.js';
+import { applyPatch, buildSettingsPatch, pickValidValues } from './settingValues.js';
 import type {
   PluginPermissions,
   PluginRecord,
@@ -162,6 +165,27 @@ export class PluginService {
     });
   }
 
+  public updatePluginSettings(id: string, update: Record<string, unknown>): Promise<PluginView[]> {
+    return this.serialize(async () => {
+      const plugin = await this.requirePlugin(id);
+      const patch = buildSettingsPatch(plugin.manifest.settings, update);
+
+      const store = new PluginStore(this.db);
+      const stored = await store.getStoredSettings(id);
+      await store.saveSettings(id, applyPatch(stored.values, patch.config), applyPatch(stored.secrets, patch.secrets));
+      return this.listPlugins();
+    });
+  }
+
+  public async readFrontAsset(id: string, relativePath: string): Promise<FrontAsset> {
+    const plugin = await this.requirePlugin(id);
+    if (!plugin.enabled || plugin.manifest.front === null) {
+      throw new HttpError(404, 'plugin_front_unavailable', 'このプラグインの画面は利用できません');
+    }
+    const frontRoot = path.join(this.installer.repositoryDirectory(plugin.repoId), plugin.path, 'front');
+    return readFrontAsset(frontRoot, relativePath);
+  }
+
   public disablePlugin(id: string): Promise<PluginView[]> {
     return this.serialize(async () => {
       await this.requirePlugin(id);
@@ -190,6 +214,8 @@ export class PluginService {
       permissions: manifest.permissions,
       grantedPermissions: plugin.grantedPermissions,
       settings: manifest.settings,
+      settingValues: pickValidValues(manifest.settings, plugin.config),
+      secretsSet: plugin.secretKeys.filter((key) => manifest.settings.some((s) => s.type === 'secret' && s.key === key)),
     };
   }
 

@@ -15,6 +15,7 @@ import { registerNotificationSocketRoute } from './notificationSocket.js';
 import { registerNotificationTestRoute } from './notificationTest.js';
 import { registerNotificationTokenRoute } from './notificationToken.js';
 import { registerPluginDispatchRoute } from './pluginDispatch.js';
+import { registerPluginFrontRoute } from './pluginFront.js';
 import { registerPluginRepositoriesRoute } from './pluginRepositories.js';
 import { registerPluginsRoute } from './plugins.js';
 
@@ -39,5 +40,6 @@ export const registerRoutes = (app: FastifyInstance, deps: RouteDeps): void => {
   registerApiKeysRoute(app, deps);
   registerPluginRepositoriesRoute(app, deps);
   registerPluginsRoute(app, deps);
+  registerPluginFrontRoute(app, deps);
   registerPluginDispatchRoute(app, deps);
 };

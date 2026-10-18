@@ -5,6 +5,7 @@ mod mail_accounts;
 mod mail_history;
 mod nodes;
 mod notifications;
+mod plugins;
 mod secrets;
 mod tray;
 
@@ -27,6 +28,11 @@ use notifications::commands::{
 };
 use notifications::manager::NotificationManager;
 use notifications::settings_store::NotificationSettingsStore;
+use plugins::commands::{
+    add_plugin_repository, delete_plugin_repository, disable_plugin, enable_plugin,
+    fetch_plugin_asset, load_plugin_repositories, load_plugins, refresh_plugin_repository,
+    save_plugin_settings,
+};
 
 const NODES_FILE: &str = "nodes.json";
 const LEGACY_MAIL_ACCOUNTS_FILE: &str = "mail_accounts.json";
@@ -118,7 +124,16 @@ pub fn run() {
             delete_notification_config,
             refresh_notification_connections,
             get_notification_connections,
-            send_test_notification
+            send_test_notification,
+            load_plugin_repositories,
+            add_plugin_repository,
+            refresh_plugin_repository,
+            delete_plugin_repository,
+            load_plugins,
+            enable_plugin,
+            disable_plugin,
+            save_plugin_settings,
+            fetch_plugin_asset
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

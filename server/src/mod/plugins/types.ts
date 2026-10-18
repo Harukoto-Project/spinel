@@ -81,6 +81,8 @@ export interface PluginRecord {
   installedVersion: string;
   enabled: boolean;
   grantedPermissions: PluginPermissions | null;
+  config: Record<string, unknown>;
+  secretKeys: string[];
   errorMessage: string | null;
   createdAt: number;
   updatedAt: number;
@@ -112,6 +114,8 @@ export interface PluginView {
   permissions: PluginPermissions;
   grantedPermissions: PluginPermissions | null;
   settings: PluginSettingSchema[];
+  settingValues: Record<string, string | number | boolean>;
+  secretsSet: string[];
 }
 
 export interface PluginSummaryView {

@@ -41,6 +41,22 @@ const enableSchema = {
   },
 } as const;
 
+const settingsSchema = {
+  params: paramsSchema,
+  body: {
+    type: 'object',
+    required: ['values'],
+    properties: {
+      values: {
+        type: 'object',
+        maxProperties: 64,
+        additionalProperties: { type: ['string', 'number', 'boolean', 'null'] },
+      },
+    },
+    additionalProperties: false,
+  },
+} as const;
+
 export const registerPluginsRoute = (app: FastifyInstance, { auth, plugins }: RouteDeps): void => {
   const preHandler = requireAdminKey(auth);
 
@@ -53,6 +69,14 @@ export const registerPluginsRoute = (app: FastifyInstance, { auth, plugins }: Ro
     { preHandler, schema: enableSchema },
     async (request): Promise<PluginsResponse> => ({
       plugins: await plugins.enablePlugin(request.params.id, request.body.grantedPermissions),
+    }),
+  );
+
+  app.put<{ Params: PluginParams; Body: { values: Record<string, unknown> } }>(
+    '/plugins/:id/settings',
+    { preHandler, schema: settingsSchema },
+    async (request): Promise<PluginsResponse> => ({
+      plugins: await plugins.updatePluginSettings(request.params.id, request.body.values),
     }),
   );
 

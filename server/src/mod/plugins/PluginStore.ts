@@ -9,13 +9,15 @@ interface PluginRow {
   installed_version: string;
   enabled: number;
   granted_permissions: string | null;
+  config: string;
+  secrets: string | null;
   error_message: string | null;
   created_at: number;
   updated_at: number;
 }
 
 const COLUMNS =
-  'id, repo_id, path, manifest, installed_version, enabled, granted_permissions, error_message, created_at, updated_at';
+  'id, repo_id, path, manifest, installed_version, enabled, granted_permissions, config, secrets, error_message, created_at, updated_at';
 
 const toRecord = (row: PluginRow): PluginRecord => ({
   id: row.id,
@@ -25,6 +27,8 @@ const toRecord = (row: PluginRow): PluginRecord => ({
   installedVersion: row.installed_version,
   enabled: row.enabled === 1,
   grantedPermissions: row.granted_permissions === null ? null : (JSON.parse(row.granted_permissions) as PluginPermissions),
+  config: parseObject(row.config),
+  secretKeys: Object.keys(parseObject(row.secrets)),
   errorMessage: row.error_message,
   createdAt: Number(row.created_at),
   updatedAt: Number(row.updated_at),
@@ -141,6 +145,15 @@ export class PluginStore {
       values: parseObject(row?.config ?? null),
       secrets: parseObject(row?.secrets ?? null),
     };
+  }
+
+  public async saveSettings(id: string, values: Record<string, unknown>, secrets: Record<string, unknown>): Promise<void> {
+    await execute(this.db, 'UPDATE plugins SET config = ?, secrets = ?, updated_at = ? WHERE id = ?', [
+      JSON.stringify(values),
+      Object.keys(secrets).length === 0 ? null : JSON.stringify(secrets),
+      Date.now(),
+      id,
+    ]);
   }
 
   public async setEnabled(id: string, enabled: boolean, grantedPermissions: PluginPermissions | null): Promise<void> {

@@ -34,8 +34,32 @@ pub(crate) async fn send<T: DeserializeOwned>(
     path: &str,
     body: Option<Value>,
 ) -> Result<T, ApiError> {
+    send_with_timeout(target, method, path, body, REQUEST_TIMEOUT).await
+}
+
+pub(crate) async fn send_with_timeout<T: DeserializeOwned>(
+    target: &NodeTarget,
+    method: Method,
+    path: &str,
+    body: Option<Value>,
+    timeout: Duration,
+) -> Result<T, ApiError> {
+    request(target, method, path, body, timeout)
+        .await?
+        .json::<T>()
+        .await
+        .map_err(|e| ApiError::Other(format!("ノードの応答の形式が正しくありません: {e}")))
+}
+
+pub(crate) async fn request(
+    target: &NodeTarget,
+    method: Method,
+    path: &str,
+    body: Option<Value>,
+    timeout: Duration,
+) -> Result<reqwest::Response, ApiError> {
     let client = reqwest::Client::builder()
-        .timeout(REQUEST_TIMEOUT)
+        .timeout(timeout)
         .build()
         .map_err(|e| ApiError::Other(e.to_string()))?;
 
@@ -53,10 +77,7 @@ pub(crate) async fn send<T: DeserializeOwned>(
 
     let status = response.status();
     if status.is_success() {
-        return response
-            .json::<T>()
-            .await
-            .map_err(|e| ApiError::Other(format!("ノードの応答の形式が正しくありません: {e}")));
+        return Ok(response);
     }
 
     match status {
