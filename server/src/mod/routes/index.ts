@@ -4,6 +4,7 @@ import type { AuthService } from '../auth/AuthService.js';
 import type { HealthService } from '../health/HealthService.js';
 import type { MailService } from '../mail/MailService.js';
 import type { NotificationHub } from '../notifications/NotificationHub.js';
+import type { PluginService } from '../plugins/PluginService.js';
 import { registerApiKeysRoute } from './apiKeys.js';
 import { registerHealthRoute } from './health.js';
 import { registerMailAccountsRoute } from './mailAccounts.js';
@@ -13,6 +14,7 @@ import { registerMailSettingsRoute } from './mailSettings.js';
 import { registerNotificationSocketRoute } from './notificationSocket.js';
 import { registerNotificationTestRoute } from './notificationTest.js';
 import { registerNotificationTokenRoute } from './notificationToken.js';
+import { registerPluginRepositoriesRoute } from './pluginRepositories.js';
 
 export interface RouteDeps {
   health: HealthService;
@@ -20,6 +22,7 @@ export interface RouteDeps {
   hub: NotificationHub;
   mail: MailService;
   apiKeys: ApiKeyService;
+  plugins: PluginService;
 }
 
 export const registerRoutes = (app: FastifyInstance, deps: RouteDeps): void => {
@@ -32,4 +35,5 @@ export const registerRoutes = (app: FastifyInstance, deps: RouteDeps): void => {
   registerMailSettingsRoute(app, deps);
   registerMailHistoryRoute(app, deps);
   registerApiKeysRoute(app, deps);
+  registerPluginRepositoriesRoute(app, deps);
 };

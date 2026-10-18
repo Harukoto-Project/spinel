@@ -1,6 +1,7 @@
 import cors from '@fastify/cors';
 import websocket from '@fastify/websocket';
 import Fastify, { type FastifyInstance } from 'fastify';
+import path from 'node:path';
 import { ApiKeyService } from './apiKeys/ApiKeyService.js';
 import { ApiKeyStore } from './apiKeys/ApiKeyStore.js';
 import { AdminKeyStore } from './auth/AdminKeyStore.js';
@@ -30,6 +31,9 @@ import { OutlookProvider } from './mail/providers/outlook/OutlookProvider.js';
 import { ProviderRegistry } from './mail/providers/ProviderRegistry.js';
 import { MailSettingsStore } from './mail/settings/MailSettingsStore.js';
 import { NotificationHub } from './notifications/NotificationHub.js';
+import { GitClient } from './plugins/GitClient.js';
+import { PluginInstaller } from './plugins/PluginInstaller.js';
+import { PluginService } from './plugins/PluginService.js';
 import { registerRoutes } from './routes/index.js';
 import { loadAppVersion } from './system/appVersion.js';
 import { TriageProvider } from './triage/TriageProvider.js';
@@ -123,6 +127,11 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
     hub,
     mail: new MailService(accounts, providers, settings, history, oauth),
     apiKeys,
+    plugins: new PluginService(
+      db,
+      new PluginInstaller(path.resolve(config.dataDir, 'plugins', 'repos'), new GitClient()),
+      logger,
+    ),
   });
 
   return app;

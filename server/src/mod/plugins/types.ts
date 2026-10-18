@@ -63,3 +63,42 @@ export interface RepositoryIndex {
 }
 
 export const REPOSITORY_INDEX_SCHEMA = 1;
+
+export interface PluginRepositoryRecord {
+  id: string;
+  url: string;
+  name: string;
+  installedSha: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface PluginRecord {
+  id: string;
+  repoId: string;
+  path: string;
+  manifest: PluginManifest;
+  installedVersion: string;
+  enabled: boolean;
+  grantedPermissions: PluginPermissions | null;
+  errorMessage: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface PluginRepositoryView {
+  id: string;
+  url: string;
+  name: string;
+  installedSha: string;
+  updatedAt: number;
+  plugins: PluginSummaryView[];
+}
+
+export interface PluginSummaryView {
+  id: string;
+  name: string;
+  version: string;
+  description: string | null;
+  enabled: boolean;
+}
