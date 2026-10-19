@@ -110,6 +110,11 @@ export const parseInputs = (commandTable: Table, commandAt: string): PluginComma
       return fail(fieldPath(at, 'arg'), 'boolean 型には arg ではなく flag を使ってください');
     if (type !== 'boolean' && flag !== null) return fail(fieldPath(at, 'flag'), 'flag は boolean 型でのみ指定できます');
 
+    const consent = optionalString(table, 'consent', at, 1024);
+    if (consent !== null && type !== 'boolean') {
+      return fail(fieldPath(at, 'consent'), 'consent は boolean 型でのみ指定できます');
+    }
+
     return {
       key,
       type,
@@ -121,6 +126,7 @@ export const parseInputs = (commandTable: Table, commandAt: string): PluginComma
       arg,
       flag,
       display: readDisplay(table, type, at),
+      consent,
     };
   });
 };

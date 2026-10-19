@@ -16,6 +16,7 @@ export type PluginCommandInput = {
   arg: string | null;
   flag: string | null;
   display: PluginInputDisplay | null;
+  consent?: string | null;
 };
 
 export type PluginAppCommand = {

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { LoaderCircle, Play, Square } from 'lucide-react';
+import { CommandConsentDialog } from '@/components/plugin-app/CommandConsentDialog';
 import { CommandInputField } from '@/components/plugin-app/CommandInputField';
 import {
   buildInputValues,
+  collectConsents,
   createInputDraft,
   isInputDraftValid,
   type InputDraft,
@@ -25,12 +27,24 @@ export function CommandRunner({ command }: CommandRunnerProps) {
   const [draft, setDraft] = useState<InputDraft>(() => createInputDraft(command.inputs));
   const [pending, setPending] = useState<'run' | 'stop' | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [consentOpen, setConsentOpen] = useState(false);
 
   const task = overview.tasks.find((item) => item.commandId === command.id);
   const status = task?.status ?? 'idle';
   const running = status === 'running';
   const valid = isInputDraftValid(command.inputs, draft);
   const statusLabel = TASK_STATUS_LABELS[status];
+  const consents = collectConsents(command.inputs, draft);
+
+  const handleRunClick = () => {
+    if (consents.length > 0) setConsentOpen(true);
+    else void handleRun();
+  };
+
+  const handleConsentConfirm = () => {
+    setConsentOpen(false);
+    void handleRun();
+  };
 
   const handleRun = async () => {
     setPending('run');
@@ -97,7 +111,7 @@ export function CommandRunner({ command }: CommandRunnerProps) {
           <Button
             className="cursor-pointer"
             disabled={!setupReady || !valid || pending !== null}
-            onClick={() => void handleRun()}
+            onClick={handleRunClick}
           >
             {pending === 'run' ? <LoaderCircle className="animate-spin" /> : <Play />}
             実行
@@ -118,6 +132,14 @@ export function CommandRunner({ command }: CommandRunnerProps) {
           {error}
         </p>
       )}
+
+      <CommandConsentDialog
+        commandLabel={command.label}
+        consents={consents}
+        open={consentOpen}
+        onOpenChange={setConsentOpen}
+        onConfirm={handleConsentConfirm}
+      />
     </div>
   );
 }

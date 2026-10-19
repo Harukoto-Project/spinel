@@ -41,6 +41,22 @@ export function buildInputValues(inputs: PluginCommandInput[], draft: InputDraft
   return values;
 }
 
+export type CommandConsent = {
+  key: string;
+  label: string;
+  text: string;
+};
+
+export function collectConsents(inputs: PluginCommandInput[], draft: InputDraft): CommandConsent[] {
+  const consents: CommandConsent[] = [];
+  for (const input of inputs) {
+    if (input.type !== 'boolean' || !input.consent) continue;
+    if (draft[input.key] !== true) continue;
+    consents.push({ key: input.key, label: input.label, text: input.consent });
+  }
+  return consents;
+}
+
 export function resolveChoiceDisplay(input: PluginCommandInput): 'buttons' | 'select' {
   if (input.display !== null) return input.display;
   return (input.options?.length ?? 0) <= 8 ? 'buttons' : 'select';

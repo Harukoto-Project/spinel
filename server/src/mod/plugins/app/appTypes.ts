@@ -53,6 +53,7 @@ export interface PluginCommandInput {
   arg: string | null;
   flag: string | null;
   display: PluginInputDisplay | null;
+  consent: string | null;
 }
 
 export interface PluginCommand {
