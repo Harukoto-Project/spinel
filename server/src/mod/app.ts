@@ -32,6 +32,7 @@ import { ProviderRegistry } from './mail/providers/ProviderRegistry.js';
 import { MailSettingsStore } from './mail/settings/MailSettingsStore.js';
 import { NotificationHub } from './notifications/NotificationHub.js';
 import { GitClient } from './plugins/GitClient.js';
+import { SshKeyService } from './ssh/SshKeyService.js';
 import { PluginInstaller } from './plugins/PluginInstaller.js';
 import { PluginLoader } from './plugins/PluginLoader.js';
 import { PluginProcessManager } from './plugins/process/PluginProcessManager.js';
@@ -123,7 +124,8 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
   app.addHook('onReady', async () => poller.start());
   app.addHook('onClose', async () => poller.stop());
 
-  const pluginInstaller = new PluginInstaller(path.resolve(config.dataDir, 'plugins', 'repos'), new GitClient());
+  const sshKey = new SshKeyService(path.resolve(config.dataDir, 'ssh'), logger);
+  const pluginInstaller = new PluginInstaller(path.resolve(config.dataDir, 'plugins', 'repos'), new GitClient(sshKey));
   const pluginLoader = new PluginLoader({
     db,
     installer: pluginInstaller,
@@ -142,6 +144,7 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
     mail: new MailService(accounts, providers, settings, history, oauth),
     apiKeys,
     plugins: pluginService,
+    sshKey,
   });
 
   return app;

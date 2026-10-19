@@ -1,5 +1,7 @@
 import { execFile } from 'node:child_process';
 import { HttpError } from '../http/HttpError.js';
+import type { SshCommandProvider } from '../ssh/types.js';
+import { isSshRepositoryUrl } from './repositoryUrl.js';
 
 const GIT_TIMEOUT_MS = 120_000;
 const GIT_MAX_BUFFER = 1024 * 1024;
@@ -11,19 +13,33 @@ interface ExecFailure extends Error {
   stderr?: string;
 }
 
-const gitEnv = (): NodeJS.ProcessEnv => ({
+type Transport = 'https' | 'ssh';
+
+const gitEnv = (transport: Transport, sshCommand: string | null): NodeJS.ProcessEnv => ({
   ...process.env,
   GIT_TERMINAL_PROMPT: '0',
   GCM_INTERACTIVE: 'never',
-  GIT_ALLOW_PROTOCOL: 'https',
+  GIT_ALLOW_PROTOCOL: transport,
+  ...(sshCommand === null ? {} : { GIT_SSH_COMMAND: sshCommand }),
 });
 
-const run = (args: readonly string[]): Promise<string> =>
+const describeFailure = (transport: Transport, stderr: string): string => {
+  const detail = stderr.trim().slice(-ERROR_DETAIL_MAX);
+  if (transport === 'ssh' && /permission denied \(publickey\)|could not read from remote repository/i.test(stderr)) {
+    return (
+      'リポジトリを取得できませんでした。このノードの SSH 公開鍵が GitHub に登録されていないか、リポジトリへのアクセス権がありません' +
+      '(設定ページの「SSH 公開鍵」を GitHub の SSH keys に登録してください)'
+    );
+  }
+  return `リポジトリを取得できませんでした${detail === '' ? '' : `: ${detail}`}`;
+};
+
+const run = (args: readonly string[], transport: Transport, sshCommand: string | null): Promise<string> =>
   new Promise((resolve, reject) => {
     execFile(
       'git',
       [...args],
-      { env: gitEnv(), timeout: GIT_TIMEOUT_MS, maxBuffer: GIT_MAX_BUFFER, windowsHide: true },
+      { env: gitEnv(transport, sshCommand), timeout: GIT_TIMEOUT_MS, maxBuffer: GIT_MAX_BUFFER, windowsHide: true },
       (error, stdout, stderr) => {
         if (error === null) {
           resolve(stdout);
@@ -38,37 +54,39 @@ const run = (args: readonly string[]): Promise<string> =>
           reject(new HttpError(504, 'repository_fetch_timeout', 'リポジトリの取得がタイムアウトしました'));
           return;
         }
-        const detail = stderr.trim().slice(-ERROR_DETAIL_MAX);
-        reject(
-          new HttpError(
-            400,
-            'repository_fetch_failed',
-            `リポジトリを取得できませんでした${detail === '' ? '' : `: ${detail}`}`,
-          ),
-        );
+        reject(new HttpError(400, 'repository_fetch_failed', describeFailure(transport, stderr)));
       },
     );
   });
 
 export class GitClient {
+  public constructor(private readonly ssh: SshCommandProvider) {}
+
   public async cloneShallow(url: string, destination: string): Promise<string> {
-    await run([
-      '-c',
-      'core.symlinks=false',
-      '-c',
-      'protocol.allow=never',
-      '-c',
-      'protocol.https.allow=always',
-      'clone',
-      '--depth',
-      '1',
-      '--single-branch',
-      '--no-tags',
-      '--',
-      url,
-      destination,
-    ]);
-    const sha = (await run(['-C', destination, 'rev-parse', 'HEAD'])).trim();
+    const transport: Transport = isSshRepositoryUrl(url) ? 'ssh' : 'https';
+    const sshCommand = transport === 'ssh' ? await this.ssh.gitSshCommand() : null;
+
+    await run(
+      [
+        '-c',
+        'core.symlinks=false',
+        '-c',
+        'protocol.allow=never',
+        '-c',
+        `protocol.${transport}.allow=always`,
+        'clone',
+        '--depth',
+        '1',
+        '--single-branch',
+        '--no-tags',
+        '--',
+        url,
+        destination,
+      ],
+      transport,
+      sshCommand,
+    );
+    const sha = (await run(['-C', destination, 'rev-parse', 'HEAD'], transport, sshCommand)).trim();
     if (!/^[0-9a-f]{40}$/.test(sha)) {
       throw new HttpError(500, 'repository_fetch_failed', 'リポジトリのコミットを特定できませんでした');
     }

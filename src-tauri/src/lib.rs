@@ -7,6 +7,7 @@ mod nodes;
 mod notifications;
 mod plugins;
 mod secrets;
+mod ssh_key;
 mod tray;
 
 use tauri::Manager;
@@ -33,6 +34,7 @@ use plugins::commands::{
     fetch_plugin_asset, load_plugin_repositories, load_plugins, refresh_plugin_repository,
     request_plugin_api, save_plugin_settings,
 };
+use ssh_key::commands::{load_ssh_key, regenerate_ssh_key};
 
 const NODES_FILE: &str = "nodes.json";
 const LEGACY_MAIL_ACCOUNTS_FILE: &str = "mail_accounts.json";
@@ -134,7 +136,9 @@ pub fn run() {
             disable_plugin,
             save_plugin_settings,
             fetch_plugin_asset,
-            request_plugin_api
+            request_plugin_api,
+            load_ssh_key,
+            regenerate_ssh_key
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

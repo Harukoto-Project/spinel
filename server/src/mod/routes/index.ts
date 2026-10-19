@@ -5,6 +5,7 @@ import type { HealthService } from '../health/HealthService.js';
 import type { MailService } from '../mail/MailService.js';
 import type { NotificationHub } from '../notifications/NotificationHub.js';
 import type { PluginService } from '../plugins/PluginService.js';
+import type { SshKeyService } from '../ssh/SshKeyService.js';
 import { registerApiKeysRoute } from './apiKeys.js';
 import { registerHealthRoute } from './health.js';
 import { registerMailAccountsRoute } from './mailAccounts.js';
@@ -18,6 +19,7 @@ import { registerPluginDispatchRoute } from './pluginDispatch.js';
 import { registerPluginFrontRoute } from './pluginFront.js';
 import { registerPluginRepositoriesRoute } from './pluginRepositories.js';
 import { registerPluginsRoute } from './plugins.js';
+import { registerSshKeyRoute } from './sshKey.js';
 
 export interface RouteDeps {
   health: HealthService;
@@ -26,6 +28,7 @@ export interface RouteDeps {
   mail: MailService;
   apiKeys: ApiKeyService;
   plugins: PluginService;
+  sshKey: SshKeyService;
 }
 
 export const registerRoutes = (app: FastifyInstance, deps: RouteDeps): void => {
@@ -38,6 +41,7 @@ export const registerRoutes = (app: FastifyInstance, deps: RouteDeps): void => {
   registerMailSettingsRoute(app, deps);
   registerMailHistoryRoute(app, deps);
   registerApiKeysRoute(app, deps);
+  registerSshKeyRoute(app, deps);
   registerPluginRepositoriesRoute(app, deps);
   registerPluginsRoute(app, deps);
   registerPluginFrontRoute(app, deps);
