@@ -1,3 +1,5 @@
+import type { PluginAppView } from '@/types/pluginApp';
+
 export type PluginSettingType = 'string' | 'number' | 'boolean' | 'secret' | 'path' | 'select';
 
 export type PluginSettingValue = string | number | boolean;
@@ -49,6 +51,8 @@ export type Plugin = {
   hasServer: boolean;
   hasFront: boolean;
   frontEntry: string | null;
+  hasApp: boolean;
+  app: PluginAppView | null;
   enabled: boolean;
   status: PluginStatus;
   errorMessage: string | null;

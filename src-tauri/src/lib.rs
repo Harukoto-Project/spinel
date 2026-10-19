@@ -29,6 +29,11 @@ use notifications::commands::{
 };
 use notifications::manager::NotificationManager;
 use notifications::settings_store::NotificationSettingsStore;
+use plugins::app_commands::{
+    load_plugin_app, query_plugin_app_command, read_plugin_app_command_logs,
+    read_plugin_app_setup_logs, run_plugin_app_command, run_plugin_app_setup,
+    stop_plugin_app_command, update_plugin_app_source,
+};
 use plugins::commands::{
     add_plugin_repository, delete_plugin_repository, disable_plugin, enable_plugin,
     fetch_plugin_asset, load_plugin_repositories, load_plugins, refresh_plugin_repository,
@@ -137,6 +142,14 @@ pub fn run() {
             save_plugin_settings,
             fetch_plugin_asset,
             request_plugin_api,
+            load_plugin_app,
+            update_plugin_app_source,
+            run_plugin_app_setup,
+            read_plugin_app_setup_logs,
+            run_plugin_app_command,
+            stop_plugin_app_command,
+            read_plugin_app_command_logs,
+            query_plugin_app_command,
             load_ssh_key,
             regenerate_ssh_key
         ])
