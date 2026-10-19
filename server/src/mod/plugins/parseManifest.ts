@@ -1,5 +1,7 @@
 import { parse as parseToml } from 'smol-toml';
 import { HttpError } from '../http/HttpError.js';
+import type { PluginAppSpec } from './app/appTypes.js';
+import { parseApp } from './app/parseApp.js';
 import { parsePermissions } from './parsePermissions.js';
 import { parseSettings } from './parseSettings.js';
 import {
@@ -9,6 +11,7 @@ import {
   type PluginBuild,
   type PluginEntry,
   type PluginManifest,
+  type PluginPermissions,
 } from './types.js';
 import {
   fail,
@@ -23,6 +26,7 @@ import {
 } from './readers.js';
 
 const ENTRY_PATTERN = /\.m?js$/;
+const GITHUB_ORIGIN = 'https://github.com';
 
 export const MANIFEST_FILE_NAME = 'plugin.toml';
 
@@ -65,17 +69,29 @@ const readBuild = (root: Table): PluginBuild | null => {
   return { command: requireString(table, 'command', 'build', 1024) };
 };
 
+const withSourceNetwork = (permissions: PluginPermissions, app: PluginAppSpec): PluginPermissions => {
+  if (app.source === null || permissions.network.includes('*') || permissions.network.includes(GITHUB_ORIGIN)) {
+    return permissions;
+  }
+  return { ...permissions, network: [...permissions.network, GITHUB_ORIGIN] };
+};
+
 const buildManifest = (root: Table): PluginManifest => {
-  const permissions = parsePermissions(optionalTable(root, 'permissions', ''), 'permissions');
+  const declaredPermissions = parsePermissions(optionalTable(root, 'permissions', ''), 'permissions');
   const build = readBuild(root);
-  if (build !== null && !permissions.build) {
+  if (build !== null && !declaredPermissions.build) {
     return fail('build', '[build] を使うには permissions.build = true が必要です');
   }
 
+  const settings = parseSettings(root, '');
+  const app = parseApp(root, settings, declaredPermissions);
+  const permissions = withSourceNetwork(declaredPermissions, app);
+
   const server = readEntry(root, 'server');
   const front = readEntry(root, 'front');
-  if (server === null && front === null) {
-    return fail('(entry)', '[server] または [front] のどちらかは必要です');
+  const hasAppPart = app.commands.length > 0 || app.panels.length > 0;
+  if (server === null && front === null && !hasAppPart) {
+    return fail('(entry)', '[server]・[front]・[[commands]]・[[panels]] のいずれかは必要です');
   }
   return {
     id: readPluginId(root),
@@ -87,7 +103,8 @@ const buildManifest = (root: Table): PluginManifest => {
     front,
     build,
     permissions,
-    settings: parseSettings(root, ''),
+    settings,
+    app,
   };
 };
 

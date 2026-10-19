@@ -1,4 +1,5 @@
 import { execute, queryRows, type Queryable } from '../db/Database.js';
+import { EMPTY_APP_SPEC } from './app/appTypes.js';
 import type { PluginManifest, PluginPermissions, PluginRecord } from './types.js';
 
 interface PluginRow {
@@ -19,11 +20,16 @@ interface PluginRow {
 const COLUMNS =
   'id, repo_id, path, manifest, installed_version, enabled, granted_permissions, config, secrets, error_message, created_at, updated_at';
 
+const parseStoredManifest = (text: string): PluginManifest => {
+  const manifest = JSON.parse(text) as Omit<PluginManifest, 'app'> & { app?: PluginManifest['app'] };
+  return { ...manifest, app: manifest.app ?? EMPTY_APP_SPEC };
+};
+
 const toRecord = (row: PluginRow): PluginRecord => ({
   id: row.id,
   repoId: row.repo_id,
   path: row.path,
-  manifest: JSON.parse(row.manifest) as PluginManifest,
+  manifest: parseStoredManifest(row.manifest),
   installedVersion: row.installed_version,
   enabled: row.enabled === 1,
   grantedPermissions: row.granted_permissions === null ? null : (JSON.parse(row.granted_permissions) as PluginPermissions),

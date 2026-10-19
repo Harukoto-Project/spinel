@@ -1,3 +1,5 @@
+import type { PluginAppSpec } from './app/appTypes.js';
+
 export const SUPPORTED_SPINEL_API = 1;
 
 export const PLUGIN_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -46,6 +48,7 @@ export interface PluginManifest {
   build: PluginBuild | null;
   permissions: PluginPermissions;
   settings: PluginSettingSchema[];
+  app: PluginAppSpec;
 }
 
 export interface RepositoryPluginSummary {
