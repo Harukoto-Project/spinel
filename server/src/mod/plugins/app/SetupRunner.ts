@@ -135,7 +135,10 @@ export class SetupRunner {
         await this.runStep(record.id, step, environment, runtime, state);
 
         if (isDone(state.status)) {
-          completed[step.id] = { status: state.status as 'success' | 'skipped', finishedAt: state.finishedAt ?? Date.now() };
+          completed[step.id] = {
+            status: state.status as 'success' | 'skipped',
+            finishedAt: state.finishedAt ?? Date.now(),
+          };
           if (!runtime.aborted) await store.save(record.id, completed);
         }
         if (state.status === 'failed') break;
@@ -189,7 +192,8 @@ export class SetupRunner {
       const result = await waitForExit(child, step.timeoutSec);
       if (runtime.aborted) return fail('キャンセルされました');
       if (result.timedOut) return fail(`${step.timeoutSec} 秒以内に完了しませんでした`);
-      if (result.exit.code !== 0) return fail(`終了コード ${result.exit.code ?? result.exit.signal ?? '不明'} で失敗しました`);
+      if (result.exit.code !== 0)
+        return fail(`終了コード ${result.exit.code ?? result.exit.signal ?? '不明'} で失敗しました`);
 
       state.status = 'success';
       state.finishedAt = Date.now();

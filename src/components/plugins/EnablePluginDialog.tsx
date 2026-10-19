@@ -57,7 +57,12 @@ export function EnablePluginDialog({ plugin, open, onOpenChange, onEnable }: Ena
           </p>
         )}
         <DialogFooter>
-          <Button className="cursor-pointer" variant="outline" disabled={submitting} onClick={() => onOpenChange(false)}>
+          <Button
+            className="cursor-pointer"
+            variant="outline"
+            disabled={submitting}
+            onClick={() => onOpenChange(false)}
+          >
             キャンセル
           </Button>
           <Button className="cursor-pointer" disabled={submitting} onClick={() => void handleConfirm()}>

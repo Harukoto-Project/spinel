@@ -24,8 +24,9 @@ export function SshKeyNodeCard({ nodeId }: SshKeyNodeCardProps) {
       <CardHeader>
         <CardTitle>Git 用の SSH 公開鍵</CardTitle>
         <CardDescription>
-          GitHub の「Settings → SSH and GPG keys → New SSH key」にこの公開鍵を登録すると、ノードが private リポジトリを取得できます。
-          リポジトリの URL には <code className="text-xs">git@github.com:owner/repository</code> の形式を使います。
+          GitHub の「Settings → SSH and GPG keys → New SSH key」にこの公開鍵を登録すると、ノードが private
+          リポジトリを取得できます。 リポジトリの URL には{' '}
+          <code className="text-xs">git@github.com:owner/repository</code> の形式を使います。
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

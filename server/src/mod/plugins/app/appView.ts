@@ -1,10 +1,4 @@
-import type {
-  PluginAppSpec,
-  PluginCommandInput,
-  PluginCommandKind,
-  PluginPanel,
-  PluginSource,
-} from './appTypes.js';
+import type { PluginAppSpec, PluginCommandInput, PluginCommandKind, PluginPanel, PluginSource } from './appTypes.js';
 import { hasAppSpec } from './appTypes.js';
 
 export interface PluginAppCommandView {

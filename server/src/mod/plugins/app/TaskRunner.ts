@@ -175,7 +175,11 @@ export class TaskRunner {
     for (const other of record.manifest.app.commands) {
       if (other.id === command.id || other.kind !== 'task' || other.exclusive !== command.exclusive) continue;
       if (this.isActive(record.id, other.id)) {
-        throw new HttpError(409, 'command_conflict', `「${other.label}」が実行中のため、「${command.label}」は実行できません`);
+        throw new HttpError(
+          409,
+          'command_conflict',
+          `「${other.label}」が実行中のため、「${command.label}」は実行できません`,
+        );
       }
     }
   }

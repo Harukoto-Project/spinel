@@ -39,12 +39,18 @@ export class PluginService {
   }
 
   public async listRepositories(): Promise<PluginRepositoryView[]> {
-    const [repositories, plugins] = await Promise.all([new RepositoryStore(this.db).list(), new PluginStore(this.db).list()]);
+    const [repositories, plugins] = await Promise.all([
+      new RepositoryStore(this.db).list(),
+      new PluginStore(this.db).list(),
+    ]);
     return repositories.map((repository) => toRepositoryView(repository, plugins));
   }
 
   public async listPlugins(): Promise<PluginView[]> {
-    const [repositories, plugins] = await Promise.all([new RepositoryStore(this.db).list(), new PluginStore(this.db).list()]);
+    const [repositories, plugins] = await Promise.all([
+      new RepositoryStore(this.db).list(),
+      new PluginStore(this.db).list(),
+    ]);
     const shas = new Map(repositories.map((repository) => [repository.id, repository.installedSha]));
     return plugins.map((plugin) => this.toPluginView(plugin, shas.get(plugin.repoId) ?? null));
   }
@@ -92,6 +98,7 @@ export class PluginService {
       const repository = await this.requireRepository(id);
       const fetched = await this.installer.fetch(repository.url);
       const toUnload: string[] = [];
+      const toReload: string[] = [];
       const vanished: string[] = [];
       try {
         if (fetched.sha === repository.installedSha) return await this.listRepositories();
@@ -111,6 +118,7 @@ export class PluginService {
             }
             const keep = keepsGrant(current, manifest.permissions);
             if (!keep && current.enabled) toUnload.push(current.id);
+            if (keep && current.enabled) toReload.push(current.id);
             await plugins.updateSource(manifest.id, {
               path: summary.path,
               manifest,
@@ -124,7 +132,11 @@ export class PluginService {
           vanished.push(...existing.keys());
           await plugins.removeByIds([...existing.keys()]);
 
-          await repositories.update(id, { name: fetched.contents.index.name, installedSha: fetched.sha, updatedAt: now });
+          await repositories.update(id, {
+            name: fetched.contents.index.name,
+            installedSha: fetched.sha,
+            updatedAt: now,
+          });
           await this.installer.commit(fetched, id);
         });
       } finally {
@@ -133,6 +145,7 @@ export class PluginService {
 
       for (const pluginId of toUnload) await this.loader.unload(pluginId);
       for (const pluginId of vanished) await this.purgeAppFiles(pluginId);
+      for (const pluginId of toReload) await this.applyUpdate(pluginId, fetched.sha);
       this.logger.info(`プラグインのリポジトリを更新しました: ${repository.url}`);
       return this.listRepositories();
     });
@@ -265,8 +278,31 @@ export class PluginService {
       grantedPermissions: plugin.grantedPermissions,
       settings: manifest.settings,
       settingValues: pickValidValues(manifest.settings, plugin.config),
-      secretsSet: plugin.secretKeys.filter((key) => manifest.settings.some((s) => s.type === 'secret' && s.key === key)),
+      secretsSet: plugin.secretKeys.filter((key) =>
+        manifest.settings.some((s) => s.type === 'secret' && s.key === key),
+      ),
     };
+  }
+
+  private async applyUpdate(pluginId: string, sha: string): Promise<void> {
+    const store = new PluginStore(this.db);
+    const record = await store.get(pluginId);
+    if (record === null || !record.enabled) return;
+
+    if (record.manifest.server !== null || !this.loader.isLoaded(pluginId)) {
+      await this.loader.unload(pluginId);
+      await this.loader.load(record, 'enable');
+      return;
+    }
+
+    this.loader.adoptSha(pluginId, sha);
+    try {
+      await this.app.refresh(record);
+      await store.setError(pluginId, null);
+    } catch (error) {
+      this.logger.error(`プラグインの更新後の準備に失敗しました: ${pluginId}`, error);
+      await store.setError(pluginId, error instanceof Error ? error.message : String(error)).catch(() => undefined);
+    }
   }
 
   private async purgeAppFiles(pluginId: string): Promise<void> {
@@ -309,7 +345,10 @@ export class PluginService {
 const keepsGrant = (current: PluginRecord, next: PluginPermissions): boolean =>
   current.grantedPermissions === null || isPermissionCovered(next, current.grantedPermissions);
 
-const toRepositoryView = (repository: PluginRepositoryRecord, plugins: readonly PluginRecord[]): PluginRepositoryView => ({
+const toRepositoryView = (
+  repository: PluginRepositoryRecord,
+  plugins: readonly PluginRecord[],
+): PluginRepositoryView => ({
   id: repository.id,
   url: repository.url,
   name: repository.name,

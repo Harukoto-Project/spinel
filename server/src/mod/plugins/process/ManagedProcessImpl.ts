@@ -39,7 +39,9 @@ export class ManagedProcessImpl implements ManagedProcess {
     onFinished: (process: ManagedProcessImpl) => void,
     options: CaptureOptions = {},
   ) {
-    this.maskValues = [...(options.maskValues ?? [])].filter((value) => value !== '').sort((a, b) => b.length - a.length);
+    this.maskValues = [...(options.maskValues ?? [])]
+      .filter((value) => value !== '')
+      .sort((a, b) => b.length - a.length);
     this.captureStdout = options.captureStdout === true;
     child.stdout?.setEncoding('utf8');
     child.stderr?.setEncoding('utf8');

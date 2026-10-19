@@ -1,11 +1,4 @@
-import {
-  fail,
-  fieldPath,
-  optionalTableArray,
-  readRelativePath,
-  requireString,
-  type Table,
-} from '../readers.js';
+import { fail, fieldPath, optionalTableArray, readRelativePath, requireString, type Table } from '../readers.js';
 import { createScope, readRunLine, readTimeoutSec, type AppParseContext } from './appParseContext.js';
 import type { PluginSetupStep } from './appTypes.js';
 import { ID_PATTERN } from './idPattern.js';
@@ -23,7 +16,8 @@ export const parseSetup = (root: Table, context: AppParseContext): PluginSetupSt
   return tables.map((table, index) => {
     const at = `setup[${index}]`;
     const id = requireString(table, 'id', at, 32);
-    if (!ID_PATTERN.test(id)) return fail(fieldPath(at, 'id'), '小文字英字で始まる小文字英数字・-・_ だけを使ってください');
+    if (!ID_PATTERN.test(id))
+      return fail(fieldPath(at, 'id'), '小文字英字で始まる小文字英数字・-・_ だけを使ってください');
     if (seen.has(id)) return fail(fieldPath(at, 'id'), `"${id}" が重複しています`);
     seen.add(id);
 

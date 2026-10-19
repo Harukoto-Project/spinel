@@ -24,8 +24,8 @@ export function DeleteRepositoryDialog({ repository, onOpenChange, onConfirm }: 
             <DialogHeader>
               <DialogTitle>リポジトリを削除しますか?</DialogTitle>
               <DialogDescription>
-                「{repository.name}」に含まれる {repository.plugins.length} 件のプラグインを無効にして、ノードから削除します。
-                プラグインが保存した設定やデータも削除されます。
+                「{repository.name}」に含まれる {repository.plugins.length}{' '}
+                件のプラグインを無効にして、ノードから削除します。 プラグインが保存した設定やデータも削除されます。
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

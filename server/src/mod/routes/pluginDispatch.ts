@@ -13,7 +13,8 @@ export const registerPluginDispatchRoute = (app: FastifyInstance, { auth, plugin
   const handler = async (request: DispatchRequest, reply: FastifyReply): Promise<unknown> => {
     const { id } = request.params;
     const match = plugins.findRoute(id, request.method, request.params['*'] ?? '');
-    if (match === null) throw new HttpError(404, 'plugin_route_not_found', 'プラグインのエンドポイントが見つかりません');
+    if (match === null)
+      throw new HttpError(404, 'plugin_route_not_found', 'プラグインのエンドポイントが見つかりません');
 
     (request as { params: unknown }).params = { ...match.params };
     try {

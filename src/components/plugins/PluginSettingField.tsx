@@ -91,7 +91,9 @@ export function PluginSettingField({
       )}
       {schema.description && <p className="text-xs text-muted-foreground">{schema.description}</p>}
       {schema.type === 'secret' && secretSet && (
-        <p className="text-xs text-muted-foreground">保存済みの値は表示されません。上書きする場合のみ入力してください。</p>
+        <p className="text-xs text-muted-foreground">
+          保存済みの値は表示されません。上書きする場合のみ入力してください。
+        </p>
       )}
       {schema.type !== 'secret' && schema.type !== 'select' && (
         <p className="text-xs text-muted-foreground">空にすると既定値に戻ります。</p>

@@ -46,7 +46,7 @@ export function PluginRepositoriesSection({
   const handlers = useMemo<RepositoryActionHandlers>(
     () => ({
       onRefresh: (repository) =>
-        void runExclusive(`「${repository.name}」の最新を取得しています…`, () => onRefreshRepository(repository.id)),
+        void runExclusive(`「${repository.name}」を更新しています…`, () => onRefreshRepository(repository.id)),
       onDelete: (repository) => setDeleteId(repository.id),
     }),
     [onRefreshRepository, runExclusive],
@@ -71,8 +71,14 @@ export function PluginRepositoriesSection({
         columns={columns}
         data={repositories}
         loading={loading}
-        emptyMessage={totalCount === 0 ? 'リポジトリがありません。追加するとプラグインが使えるようになります' : '一致するリポジトリがありません'}
-        renderRowContextMenu={(repository) => <RepositoryContextMenuContent repository={repository} handlers={handlers} />}
+        emptyMessage={
+          totalCount === 0
+            ? 'リポジトリがありません。追加するとプラグインが使えるようになります'
+            : '一致するリポジトリがありません'
+        }
+        renderRowContextMenu={(repository) => (
+          <RepositoryContextMenuContent repository={repository} handlers={handlers} />
+        )}
       />
       <AddRepositoryDialog open={addOpen} onOpenChange={setAddOpen} onAddRepository={onAddRepository} />
       <DeleteRepositoryDialog

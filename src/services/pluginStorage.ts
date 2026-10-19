@@ -33,11 +33,7 @@ export function disablePlugin(nodeId: string, pluginId: string): Promise<Plugin[
   return invoke<Plugin[]>('disable_plugin', { nodeId, pluginId });
 }
 
-export function savePluginSettings(
-  nodeId: string,
-  pluginId: string,
-  values: PluginSettingsUpdate,
-): Promise<Plugin[]> {
+export function savePluginSettings(nodeId: string, pluginId: string, values: PluginSettingsUpdate): Promise<Plugin[]> {
   return invoke<Plugin[]>('save_plugin_settings', { nodeId, pluginId, values });
 }
 

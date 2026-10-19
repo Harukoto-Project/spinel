@@ -42,7 +42,10 @@ const validateName = (name: string, at: string, scope: PlaceholderScope): void =
     const type = scope.settings.get(key);
     if (type === undefined) return fail(at, `{${name}} に対応する [[settings]] がありません`);
     if (type === 'secret' && !scope.allowSecret) {
-      return fail(at, `{${name}} は secret 型のため、stdin と env でだけ使えます(コマンドライン引数からは見えてしまうため)`);
+      return fail(
+        at,
+        `{${name}} は secret 型のため、stdin と env でだけ使えます(コマンドライン引数からは見えてしまうため)`,
+      );
     }
     return;
   }

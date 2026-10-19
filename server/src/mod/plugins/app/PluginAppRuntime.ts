@@ -60,6 +60,15 @@ export class PluginAppRuntime {
     if (reason === 'enable' && spec.setup.length > 0) await this.setup.start(record, false);
   }
 
+  public async refresh(record: PluginRecord): Promise<void> {
+    if (!hasAppSpec(record.manifest.app)) return;
+    if (this.setup.isRunning(record.id) || this.tasks.isAnyRunning(record.id)) {
+      this.deps.logger.warn(`セットアップまたはコマンドの実行中のため、更新後の準備を見送りました: ${record.id}`);
+      return;
+    }
+    await this.prepare(record, 'enable');
+  }
+
   public release(pluginId: string): void {
     this.setup.release(pluginId);
     this.tasks.release(pluginId);

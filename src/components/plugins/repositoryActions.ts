@@ -16,7 +16,7 @@ export type RepositoryAction = {
 export const REPOSITORY_ACTIONS: RepositoryAction[] = [
   {
     id: 'refresh',
-    label: '最新を取得',
+    label: '更新',
     onSelect: (repository, handlers) => handlers.onRefresh(repository),
   },
   {

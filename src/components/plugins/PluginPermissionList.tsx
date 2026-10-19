@@ -28,9 +28,7 @@ function listPermissionItems(permissions: PluginPermissions): PermissionItem[] {
     items.push({
       id: `network:${origin}`,
       label: any ? 'すべてのサイトへの通信' : `${origin} への通信`,
-      description: any
-        ? 'ノードから任意のサイトへ通信します。'
-        : 'ノードから、このサイトへ通信します。',
+      description: any ? 'ノードから任意のサイトへ通信します。' : 'ノードから、このサイトへ通信します。',
       dangerous: any,
     });
   }

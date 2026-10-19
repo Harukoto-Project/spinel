@@ -75,10 +75,7 @@ export type NavGroupConfig = {
   items: NavItemConfig[];
 };
 
-export function getNavGroupsByPosition(
-  position: NavPosition,
-  items: NavItemConfig[] = NAV_ITEMS,
-): NavGroupConfig[] {
+export function getNavGroupsByPosition(position: NavPosition, items: NavItemConfig[] = NAV_ITEMS): NavGroupConfig[] {
   const groups: NavGroupConfig[] = [];
 
   for (const item of getNavItemsByPosition(position, items)) {

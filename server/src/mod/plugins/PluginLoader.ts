@@ -64,6 +64,11 @@ export class PluginLoader {
     return this.loaded.get(id)?.sha ?? null;
   }
 
+  public adoptSha(id: string, sha: string): void {
+    const plugin = this.loaded.get(id);
+    if (plugin !== undefined) plugin.sha = sha;
+  }
+
   public findRoute(id: string, method: string, subPath: string): RouteMatch | null {
     return this.loaded.get(id)?.router.match(method, subPath) ?? null;
   }
@@ -114,7 +119,12 @@ export class PluginLoader {
     const repository = await new RepositoryStore(this.deps.db).get(record.repoId);
     if (repository === null) throw new Error('プラグインのリポジトリが見つかりません');
 
-    const plugin: LoadedPlugin = { sha: repository.installedSha, router: new PluginRouter(), deactivators: [], instance: null };
+    const plugin: LoadedPlugin = {
+      sha: repository.installedSha,
+      router: new PluginRouter(),
+      deactivators: [],
+      instance: null,
+    };
     this.loaded.set(record.id, plugin);
 
     await this.deps.app.prepare(record, reason);
@@ -137,7 +147,9 @@ export class PluginLoader {
     });
 
     const file = path.join(this.deps.installer.repositoryDirectory(record.repoId), record.path, entry);
-    const imported = (await import(`${pathToFileURL(file).href}?v=${repository.installedSha}`)) as { default?: unknown };
+    const imported = (await import(`${pathToFileURL(file).href}?v=${repository.installedSha}`)) as {
+      default?: unknown;
+    };
     if (typeof imported.default !== 'function') throw new Error(`${entry} が関数を default export していません`);
 
     const result = await withTimeout(

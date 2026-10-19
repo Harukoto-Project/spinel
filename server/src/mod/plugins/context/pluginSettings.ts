@@ -20,7 +20,8 @@ export const resolveSettings = (
   for (const schema of schemas) {
     const stored = schema.type === 'secret' ? secrets[schema.key] : values[schema.key];
     const value: PluginSettingValue = isValidSettingValue(schema, stored) ? stored : schema.default;
-    result[schema.key] = schema.type === 'path' && typeof value === 'string' && value !== '' ? expandHome(value) : value;
+    result[schema.key] =
+      schema.type === 'path' && typeof value === 'string' && value !== '' ? expandHome(value) : value;
   }
   return result;
 };

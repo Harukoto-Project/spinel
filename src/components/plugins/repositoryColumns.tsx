@@ -1,9 +1,11 @@
 import { createColumnHelper } from '@tanstack/react-table';
+import { RefreshCw } from 'lucide-react';
 import type { DataTableFeatures } from '@/components/data-table/dataTableFeatures';
 import { formatDateTime } from '@/components/nodes/nodeFormat';
 import { RepositoryActionsMenu } from '@/components/plugins/RepositoryActionsMenu';
 import type { RepositoryActionHandlers } from '@/components/plugins/repositoryActions';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import type { PluginRepository } from '@/types/plugin';
 
 const SHORT_SHA_LENGTH = 7;
@@ -45,7 +47,19 @@ export function createRepositoryColumns(handlers: RepositoryActionHandlers) {
       id: 'actions',
       header: () => <span className="sr-only">操作</span>,
       cell: ({ row }) => (
-        <div className="flex justify-end">
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="cursor-pointer"
+            onClick={(event) => {
+              event.stopPropagation();
+              handlers.onRefresh(row.original);
+            }}
+          >
+            <RefreshCw />
+            更新
+          </Button>
           <RepositoryActionsMenu repository={row.original} handlers={handlers} />
         </div>
       ),

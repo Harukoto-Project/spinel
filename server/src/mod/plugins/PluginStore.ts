@@ -32,7 +32,8 @@ const toRecord = (row: PluginRow): PluginRecord => ({
   manifest: parseStoredManifest(row.manifest),
   installedVersion: row.installed_version,
   enabled: row.enabled === 1,
-  grantedPermissions: row.granted_permissions === null ? null : (JSON.parse(row.granted_permissions) as PluginPermissions),
+  grantedPermissions:
+    row.granted_permissions === null ? null : (JSON.parse(row.granted_permissions) as PluginPermissions),
   config: parseObject(row.config),
   secretKeys: Object.keys(parseObject(row.secrets)),
   errorMessage: row.error_message,
@@ -153,7 +154,11 @@ export class PluginStore {
     };
   }
 
-  public async saveSettings(id: string, values: Record<string, unknown>, secrets: Record<string, unknown>): Promise<void> {
+  public async saveSettings(
+    id: string,
+    values: Record<string, unknown>,
+    secrets: Record<string, unknown>,
+  ): Promise<void> {
     await execute(this.db, 'UPDATE plugins SET config = ?, secrets = ?, updated_at = ? WHERE id = ?', [
       JSON.stringify(values),
       Object.keys(secrets).length === 0 ? null : JSON.stringify(secrets),

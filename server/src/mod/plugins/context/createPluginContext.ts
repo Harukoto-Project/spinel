@@ -27,7 +27,9 @@ export interface PluginContextDeps {
 
 export class PluginPermissionError extends Error {
   public constructor(permission: string) {
-    super(`この操作には "${permission}" 権限が必要です(plugin.toml の [permissions] に宣言し、有効化時に許可してください)`);
+    super(
+      `この操作には "${permission}" 権限が必要です(plugin.toml の [permissions] に宣言し、有効化時に許可してください)`,
+    );
     this.name = 'PluginPermissionError';
   }
 }

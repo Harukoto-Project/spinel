@@ -42,7 +42,8 @@ const readStringMap = (table: Table, key: string, at: string): Record<string, st
   const result: Record<string, string> = {};
   for (const name of keys) {
     const value = map[name];
-    if (typeof value !== 'string' || value === '') return fail(fieldPath(fieldPath(at, key), name), '空でない文字列を指定してください');
+    if (typeof value !== 'string' || value === '')
+      return fail(fieldPath(fieldPath(at, key), name), '空でない文字列を指定してください');
     result[name] = value;
   }
   return result;
@@ -125,6 +126,7 @@ const readWidget = (table: Table, at: string): PluginWidget => {
 export const parseWidgets = (panelTable: Table, panelAt: string): PluginWidget[] => {
   const tables = optionalTableArray(panelTable, 'widgets', panelAt);
   if (tables.length === 0) return fail(fieldPath(panelAt, 'widgets'), 'ウィジェットを1つ以上指定してください');
-  if (tables.length > WIDGETS_MAX) return fail(fieldPath(panelAt, 'widgets'), `ウィジェットは ${WIDGETS_MAX} 個までです`);
+  if (tables.length > WIDGETS_MAX)
+    return fail(fieldPath(panelAt, 'widgets'), `ウィジェットは ${WIDGETS_MAX} 個までです`);
   return tables.map((table, index) => readWidget(table, `${fieldPath(panelAt, 'widgets')}[${index}]`));
 };

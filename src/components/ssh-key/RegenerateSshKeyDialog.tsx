@@ -46,7 +46,8 @@ export function RegenerateSshKeyDialog({ open, onOpenChange, onConfirm }: Regene
         <DialogHeader>
           <DialogTitle>SSH 鍵を再生成しますか?</DialogTitle>
           <DialogDescription>
-            現在の鍵は削除され、新しい鍵に置き換わります。GitHub に登録済みの公開鍵は使えなくなるため、新しい公開鍵を登録し直してください。
+            現在の鍵は削除され、新しい鍵に置き換わります。GitHub
+            に登録済みの公開鍵は使えなくなるため、新しい公開鍵を登録し直してください。
           </DialogDescription>
         </DialogHeader>
         {error && (
@@ -55,10 +56,20 @@ export function RegenerateSshKeyDialog({ open, onOpenChange, onConfirm }: Regene
           </p>
         )}
         <DialogFooter>
-          <Button className="cursor-pointer" variant="outline" disabled={submitting} onClick={() => handleOpenChange(false)}>
+          <Button
+            className="cursor-pointer"
+            variant="outline"
+            disabled={submitting}
+            onClick={() => handleOpenChange(false)}
+          >
             キャンセル
           </Button>
-          <Button className="cursor-pointer" variant="destructive" disabled={submitting} onClick={() => void handleConfirm()}>
+          <Button
+            className="cursor-pointer"
+            variant="destructive"
+            disabled={submitting}
+            onClick={() => void handleConfirm()}
+          >
             {submitting && <LoaderCircle className="animate-spin" />}
             再生成
           </Button>

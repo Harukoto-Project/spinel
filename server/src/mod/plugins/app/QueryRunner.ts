@@ -15,7 +15,10 @@ const parseJson = (text: string): unknown => {
   try {
     return JSON.parse(trimmed);
   } catch {
-    const lastLine = trimmed.split(/\r?\n/).filter((line) => line.trim() !== '').pop();
+    const lastLine = trimmed
+      .split(/\r?\n/)
+      .filter((line) => line.trim() !== '')
+      .pop();
     if (lastLine === undefined) throw new SyntaxError('empty');
     return JSON.parse(lastLine);
   }
@@ -58,7 +61,11 @@ export class QueryRunner {
       const result = await waitForExit(child, command.timeoutSec);
       await child.outputDrained(OUTPUT_DRAIN_MS);
       if (result.timedOut) {
-        throw new HttpError(504, 'query_timeout', `「${command.label}」が ${command.timeoutSec} 秒以内に完了しませんでした`);
+        throw new HttpError(
+          504,
+          'query_timeout',
+          `「${command.label}」が ${command.timeoutSec} 秒以内に完了しませんでした`,
+        );
       }
       if (result.exit.code !== 0) {
         const tail = child.logs(ERROR_TAIL_LINES).join('\n');
@@ -74,7 +81,11 @@ export class QueryRunner {
         if (truncated) throw new SyntaxError('truncated');
         return parseJson(text);
       } catch {
-        throw new HttpError(502, 'query_invalid_output', `「${command.label}」の出力を JSON として読み取れませんでした`);
+        throw new HttpError(
+          502,
+          'query_invalid_output',
+          `「${command.label}」の出力を JSON として読み取れませんでした`,
+        );
       }
     } finally {
       active.delete(command.id);

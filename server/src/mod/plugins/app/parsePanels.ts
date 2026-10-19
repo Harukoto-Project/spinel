@@ -32,12 +32,7 @@ const readIdList = (table: Table, key: string, at: string, optional: boolean): s
   return ids;
 };
 
-const requireCommands = (
-  ids: string[],
-  kind: PluginCommandKind,
-  path: string,
-  context: PanelContext,
-): void => {
+const requireCommands = (ids: string[], kind: PluginCommandKind, path: string, context: PanelContext): void => {
   for (const id of ids) {
     const command = context.commands.get(id);
     if (command === undefined) return fail(path, `コマンド "${id}" が [[commands]] にありません`);
@@ -49,7 +44,8 @@ const requireCommands = (
 
 const readBase = (table: Table, at: string, tab: string | null): PanelBase => {
   const id = requireString(table, 'id', at, 32);
-  if (!ID_PATTERN.test(id)) return fail(fieldPath(at, 'id'), '小文字英字で始まる小文字英数字・-・_ だけを使ってください');
+  if (!ID_PATTERN.test(id))
+    return fail(fieldPath(at, 'id'), '小文字英字で始まる小文字英数字・-・_ だけを使ってください');
   return {
     id,
     title: requireString(table, 'title', at, 64),

@@ -5,7 +5,15 @@ import { PluginSettingsDialog } from '@/components/plugins/PluginSettingsDialog'
 import { PluginStatusBadge } from '@/components/plugins/PluginStatusBadge';
 import { findMissingRequiredSettings } from '@/components/plugins/pluginSettingsDraft';
 import { Button } from '@/components/ui/button';
-import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import type { Plugin, PluginPermissions, PluginSettingsUpdate } from '@/types/plugin';
 
@@ -70,7 +78,7 @@ export function PluginCard({ plugin, frontError = null, onEnable, onDisable, onS
           )}
           {plugin.restartRequired && (
             <p className="text-muted-foreground">
-              新しいバージョンを取得済みです。反映するには、いったん無効にしてから、もう一度有効にしてください。
+              新しいバージョンを取得済みですが、まだ反映されていません。リポジトリの「更新」を押してください。
             </p>
           )}
           {missingRequired.length > 0 && (

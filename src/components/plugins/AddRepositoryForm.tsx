@@ -39,7 +39,8 @@ export function AddRepositoryForm({ onSubmit, onCancel }: AddRepositoryFormProps
       <DialogHeader>
         <DialogTitle>リポジトリを追加</DialogTitle>
         <DialogDescription>
-          ノードが GitHub のリポジトリ(https または SSH)を取得し、含まれるプラグインをインストールします。インストール直後は無効の状態です。
+          ノードが GitHub のリポジトリ(https または
+          SSH)を取得し、含まれるプラグインをインストールします。インストール直後は無効の状態です。
         </DialogDescription>
       </DialogHeader>
       <div className="flex flex-col gap-2">
@@ -56,8 +57,8 @@ export function AddRepositoryForm({ onSubmit, onCancel }: AddRepositoryFormProps
           autoFocus
         />
         <p className="text-sm text-muted-foreground">
-          private リポジトリは <code className="text-xs">git@github.com:owner/repository</code> の形式で指定し、設定ページの SSH
-          公開鍵を GitHub に登録してください。取得には時間がかかることがあります。
+          private リポジトリは <code className="text-xs">git@github.com:owner/repository</code>{' '}
+          の形式で指定し、設定ページの SSH 公開鍵を GitHub に登録してください。取得には時間がかかることがあります。
         </p>
       </div>
       {error && (

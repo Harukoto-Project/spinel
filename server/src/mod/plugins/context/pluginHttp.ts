@@ -24,7 +24,11 @@ export const createPluginHttp = (allowedOrigins: readonly string[]): PluginHttp 
   return {
     async fetch(input, init = {}) {
       let url = toUrl(input);
-      let current: RequestInit = { ...init, redirect: 'manual', signal: init.signal ?? AbortSignal.timeout(TIMEOUT_MS) };
+      let current: RequestInit = {
+        ...init,
+        redirect: 'manual',
+        signal: init.signal ?? AbortSignal.timeout(TIMEOUT_MS),
+      };
 
       for (let hop = 0; hop <= REDIRECT_MAX; hop += 1) {
         assertAllowed(url);
@@ -34,7 +38,8 @@ export const createPluginHttp = (allowedOrigins: readonly string[]): PluginHttp 
 
         url = toUrl(new URL(location, url));
         const method = (current.method ?? 'GET').toUpperCase();
-        const toGet = response.status === 303 || ((response.status === 301 || response.status === 302) && method === 'POST');
+        const toGet =
+          response.status === 303 || ((response.status === 301 || response.status === 302) && method === 'POST');
         current = toGet ? { ...current, method: 'GET', body: undefined } : current;
       }
       throw new Error(`リダイレクトが ${REDIRECT_MAX} 回を超えました`);

@@ -21,7 +21,11 @@ export const runKeygen = (keyFile: string, comment: string): Promise<void> =>
         }
         const detail = stderr.trim().slice(-ERROR_DETAIL_MAX);
         reject(
-          new HttpError(500, 'ssh_key_generation_failed', `SSH 鍵を生成できませんでした${detail === '' ? '' : `: ${detail}`}`),
+          new HttpError(
+            500,
+            'ssh_key_generation_failed',
+            `SSH 鍵を生成できませんでした${detail === '' ? '' : `: ${detail}`}`,
+          ),
         );
       },
     );

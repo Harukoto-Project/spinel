@@ -25,7 +25,8 @@ const OPTIONS_MAX = 32;
 const readType = (table: Table, at: string): PluginInputType => {
   const value = requireString(table, 'type', at, 16);
   const found = INPUT_TYPES.find((type) => type === value);
-  if (found === undefined) return fail(fieldPath(at, 'type'), `${INPUT_TYPES.join(' / ')} のいずれかを指定してください`);
+  if (found === undefined)
+    return fail(fieldPath(at, 'type'), `${INPUT_TYPES.join(' / ')} のいずれかを指定してください`);
   return found;
 };
 
@@ -35,7 +36,8 @@ const readOptions = (table: Table, type: PluginInputType, at: string): string[] 
     if (options !== null) return fail(fieldPath(at, 'options'), 'options は choice 型でのみ指定できます');
     return null;
   }
-  if (options === null || options.length === 0) return fail(fieldPath(at, 'options'), 'choice 型には options が必要です');
+  if (options === null || options.length === 0)
+    return fail(fieldPath(at, 'options'), 'choice 型には options が必要です');
   if (options.length > OPTIONS_MAX) return fail(fieldPath(at, 'options'), `選択肢は ${OPTIONS_MAX} 個までです`);
   if (new Set(options).size !== options.length) return fail(fieldPath(at, 'options'), '選択肢が重複しています');
   return options;
@@ -83,7 +85,8 @@ const readDisplay = (table: Table, type: PluginInputType, at: string): PluginInp
   if (type !== 'choice') return fail(fieldPath(at, 'display'), 'display は choice 型でのみ指定できます');
   const value = requireString(table, 'display', at, 16);
   const found = INPUT_DISPLAYS.find((display) => display === value);
-  if (found === undefined) return fail(fieldPath(at, 'display'), `${INPUT_DISPLAYS.join(' / ')} のいずれかを指定してください`);
+  if (found === undefined)
+    return fail(fieldPath(at, 'display'), `${INPUT_DISPLAYS.join(' / ')} のいずれかを指定してください`);
   return found;
 };
 
@@ -103,7 +106,8 @@ export const parseInputs = (commandTable: Table, commandAt: string): PluginComma
     const options = readOptions(table, type, at);
     const arg = readArgName(table, 'arg', at);
     const flag = readArgName(table, 'flag', at);
-    if (type === 'boolean' && arg !== null) return fail(fieldPath(at, 'arg'), 'boolean 型には arg ではなく flag を使ってください');
+    if (type === 'boolean' && arg !== null)
+      return fail(fieldPath(at, 'arg'), 'boolean 型には arg ではなく flag を使ってください');
     if (type !== 'boolean' && flag !== null) return fail(fieldPath(at, 'flag'), 'flag は boolean 型でのみ指定できます');
 
     return {

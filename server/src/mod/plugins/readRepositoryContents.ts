@@ -48,7 +48,11 @@ const verifyEntry = async (pluginDir: string, entry: string, label: string): Pro
 };
 
 const readPlugin = async (root: string, summary: RepositoryPluginSummary): Promise<RepositoryPluginContents> => {
-  const pluginDir = await resolveInside(root, summary.path, `プラグイン "${summary.id}" のディレクトリ(${summary.path})`);
+  const pluginDir = await resolveInside(
+    root,
+    summary.path,
+    `プラグイン "${summary.id}" のディレクトリ(${summary.path})`,
+  );
   const manifestText = await readLimitedText(
     path.join(pluginDir, MANIFEST_FILE_NAME),
     MANIFEST_MAX_BYTES,

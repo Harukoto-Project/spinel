@@ -36,10 +36,7 @@ export const resolveInside = (base: string, relative: string): string => {
   return resolved;
 };
 
-export const loadAppEnvironment = async (
-  deps: AppEnvironmentDeps,
-  record: PluginRecord,
-): Promise<AppEnvironment> => {
+export const loadAppEnvironment = async (deps: AppEnvironmentDeps, record: PluginRecord): Promise<AppEnvironment> => {
   const spec = record.manifest.app;
   const pluginDir = path.join(deps.installer.repositoryDirectory(record.repoId), record.path);
   const dataDir = path.join(deps.dataRoot, record.id);

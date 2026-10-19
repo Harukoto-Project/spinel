@@ -8,19 +8,8 @@ import {
   requireString,
   type Table,
 } from '../readers.js';
-import {
-  createScope,
-  readRunLine,
-  readTemplateList,
-  readTimeoutSec,
-  type AppParseContext,
-} from './appParseContext.js';
-import {
-  COMMAND_KINDS,
-  QUERY_TIMEOUT_DEFAULT_SEC,
-  type PluginCommand,
-  type PluginCommandKind,
-} from './appTypes.js';
+import { createScope, readRunLine, readTemplateList, readTimeoutSec, type AppParseContext } from './appParseContext.js';
+import { COMMAND_KINDS, QUERY_TIMEOUT_DEFAULT_SEC, type PluginCommand, type PluginCommandKind } from './appTypes.js';
 import { ID_PATTERN } from './idPattern.js';
 import { parseInputs } from './parseInputs.js';
 import { validatePlaceholders } from './placeholders.js';
@@ -33,15 +22,12 @@ const readKind = (table: Table, at: string): PluginCommandKind => {
   if (table['kind'] === undefined) return 'task';
   const value = requireString(table, 'kind', at, 16);
   const found = COMMAND_KINDS.find((kind) => kind === value);
-  if (found === undefined) return fail(fieldPath(at, 'kind'), `${COMMAND_KINDS.join(' / ')} のいずれかを指定してください`);
+  if (found === undefined)
+    return fail(fieldPath(at, 'kind'), `${COMMAND_KINDS.join(' / ')} のいずれかを指定してください`);
   return found;
 };
 
-const readEnv = (
-  table: Table,
-  at: string,
-  validate: (text: string, path: string) => void,
-): Record<string, string> => {
+const readEnv = (table: Table, at: string, validate: (text: string, path: string) => void): Record<string, string> => {
   const env = optionalTable(table, 'env', at);
   if (env === null) return {};
   const entries = Object.keys(env);
@@ -68,7 +54,8 @@ export const parseCommands = (root: Table, context: AppParseContext): PluginComm
   return tables.map((table, index) => {
     const at = `commands[${index}]`;
     const id = requireString(table, 'id', at, 32);
-    if (!ID_PATTERN.test(id)) return fail(fieldPath(at, 'id'), '小文字英字で始まる小文字英数字・-・_ だけを使ってください');
+    if (!ID_PATTERN.test(id))
+      return fail(fieldPath(at, 'id'), '小文字英字で始まる小文字英数字・-・_ だけを使ってください');
     if (seen.has(id)) return fail(fieldPath(at, 'id'), `"${id}" が重複しています`);
     seen.add(id);
 
@@ -80,7 +67,8 @@ export const parseCommands = (root: Table, context: AppParseContext): PluginComm
 
     const exclusive = optionalString(table, 'exclusive', at, 32);
     if (exclusive !== null) {
-      if (!ID_PATTERN.test(exclusive)) return fail(fieldPath(at, 'exclusive'), '小文字英字で始まる小文字英数字・-・_ だけを使ってください');
+      if (!ID_PATTERN.test(exclusive))
+        return fail(fieldPath(at, 'exclusive'), '小文字英字で始まる小文字英数字・-・_ だけを使ってください');
       if (kind === 'query') return fail(fieldPath(at, 'exclusive'), 'query コマンドには exclusive を指定できません');
     }
 

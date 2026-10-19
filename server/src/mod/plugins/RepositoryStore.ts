@@ -33,16 +33,21 @@ export class RepositoryStore {
   }
 
   public async get(id: string): Promise<PluginRepositoryRecord | null> {
-    const [row] = await queryRows<RepositoryRow>(this.db, `SELECT ${COLUMNS} FROM plugin_repositories WHERE id = ?`, [id]);
+    const [row] = await queryRows<RepositoryRow>(this.db, `SELECT ${COLUMNS} FROM plugin_repositories WHERE id = ?`, [
+      id,
+    ]);
     return row ? toRecord(row) : null;
   }
 
   public async insert(record: PluginRepositoryRecord): Promise<void> {
-    await execute(
-      this.db,
-      `INSERT INTO plugin_repositories (${COLUMNS}) VALUES (?, ?, ?, ?, ?, ?)`,
-      [record.id, record.url, record.name, record.installedSha, record.createdAt, record.updatedAt],
-    );
+    await execute(this.db, `INSERT INTO plugin_repositories (${COLUMNS}) VALUES (?, ?, ?, ?, ?, ?)`, [
+      record.id,
+      record.url,
+      record.name,
+      record.installedSha,
+      record.createdAt,
+      record.updatedAt,
+    ]);
   }
 
   public async update(id: string, fields: { name: string; installedSha: string; updatedAt: number }): Promise<void> {
