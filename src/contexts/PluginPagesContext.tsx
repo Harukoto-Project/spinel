@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useActiveNode } from '@/contexts/ActiveNodeContext';
 import { useNodesContext } from '@/contexts/NodesContext';
 import { describeError } from '@/lib/errors';
+import { createAppPage, hasAppPage } from '@/plugins/appPage';
 import { loadFrontPlugin, type LoadedFrontPlugin } from '@/plugins/loadFrontPlugin';
 import type { RegisteredPluginPage } from '@/plugins/registeredPage';
 import { loadPlugins } from '@/services/pluginStorage';
@@ -65,6 +66,7 @@ export function PluginPagesProvider({ children }: { children: ReactNode }) {
       const errors: Record<string, string> = {};
       for (const plugin of plugins) {
         if (cancelled) return;
+        if (hasAppPage(plugin)) pages.push(createAppPage(plugin));
         if (!plugin.enabled || !plugin.hasFront) continue;
         try {
           const result = await loadFrontPlugin(nodeId, plugin);
