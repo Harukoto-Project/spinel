@@ -13,7 +13,7 @@ interface ExecFailure extends Error {
   stderr?: string;
 }
 
-type Transport = 'https' | 'ssh';
+export type Transport = 'https' | 'ssh';
 
 const gitEnv = (transport: Transport, sshCommand: string | null): NodeJS.ProcessEnv => ({
   ...process.env,
@@ -59,26 +59,52 @@ const run = (args: readonly string[], transport: Transport, sshCommand: string |
     );
   });
 
+const SAFE_REF = /^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/;
+
+const configArgs = (transport: Transport): string[] => [
+  '-c',
+  'core.symlinks=false',
+  '-c',
+  'protocol.allow=never',
+  '-c',
+  `protocol.${transport}.allow=always`,
+];
+
+const assertSafeRef = (ref: string): void => {
+  if (!SAFE_REF.test(ref)) throw new HttpError(400, 'invalid_source_ref', 'ブランチ名またはタグ名が不正です');
+};
+
+export const transportOf = (url: string): Transport => (isSshRepositoryUrl(url) ? 'ssh' : 'https');
+
 export class GitClient {
   public constructor(private readonly ssh: SshCommandProvider) {}
 
-  public async cloneShallow(url: string, destination: string): Promise<string> {
-    const transport: Transport = isSshRepositoryUrl(url) ? 'ssh' : 'https';
-    const sshCommand = transport === 'ssh' ? await this.ssh.gitSshCommand() : null;
+  private sshCommandFor(transport: Transport): Promise<string | null> {
+    return transport === 'ssh' ? this.ssh.gitSshCommand() : Promise.resolve(null);
+  }
+
+  private async headSha(directory: string, transport: Transport, sshCommand: string | null): Promise<string> {
+    const sha = (await run(['-C', directory, 'rev-parse', 'HEAD'], transport, sshCommand)).trim();
+    if (!/^[0-9a-f]{40}$/.test(sha)) {
+      throw new HttpError(500, 'repository_fetch_failed', 'リポジトリのコミットを特定できませんでした');
+    }
+    return sha;
+  }
+
+  public async cloneShallow(url: string, destination: string, ref: string | null = null): Promise<string> {
+    const transport = transportOf(url);
+    const sshCommand = await this.sshCommandFor(transport);
+    if (ref !== null) assertSafeRef(ref);
 
     await run(
       [
-        '-c',
-        'core.symlinks=false',
-        '-c',
-        'protocol.allow=never',
-        '-c',
-        `protocol.${transport}.allow=always`,
+        ...configArgs(transport),
         'clone',
         '--depth',
         '1',
         '--single-branch',
         '--no-tags',
+        ...(ref === null ? [] : ['--branch', ref]),
         '--',
         url,
         destination,
@@ -86,10 +112,19 @@ export class GitClient {
       transport,
       sshCommand,
     );
-    const sha = (await run(['-C', destination, 'rev-parse', 'HEAD'], transport, sshCommand)).trim();
-    if (!/^[0-9a-f]{40}$/.test(sha)) {
-      throw new HttpError(500, 'repository_fetch_failed', 'リポジトリのコミットを特定できませんでした');
-    }
-    return sha;
+    return this.headSha(destination, transport, sshCommand);
+  }
+
+  public async fetchAndReset(directory: string, transport: Transport, ref: string | null): Promise<string> {
+    const sshCommand = await this.sshCommandFor(transport);
+    if (ref !== null) assertSafeRef(ref);
+
+    await run(
+      [...configArgs(transport), '-C', directory, 'fetch', '--depth', '1', '--no-tags', 'origin', ref ?? 'HEAD'],
+      transport,
+      sshCommand,
+    );
+    await run(['-C', directory, 'reset', '--hard', 'FETCH_HEAD'], transport, sshCommand);
+    return this.headSha(directory, transport, sshCommand);
   }
 }
