@@ -1,3 +1,4 @@
+import type { PluginAppView } from './app/appView.js';
 import type { PluginAppSpec } from './app/appTypes.js';
 
 export const SUPPORTED_SPINEL_API = 1;
@@ -111,6 +112,8 @@ export interface PluginView {
   hasServer: boolean;
   hasFront: boolean;
   frontEntry: string | null;
+  hasApp: boolean;
+  app: PluginAppView | null;
   enabled: boolean;
   status: PluginStatus;
   errorMessage: string | null;

@@ -13,7 +13,7 @@ use crate::notifications::api::ApiError;
 const FETCH_TIMEOUT: Duration = Duration::from_secs(150);
 const ASSET_TIMEOUT: Duration = Duration::from_secs(30);
 const ROUTE_TIMEOUT: Duration = Duration::from_secs(60);
-const RESERVED_FIRST_SEGMENTS: [&str; 4] = ["enable", "disable", "settings", "front"];
+const RESERVED_FIRST_SEGMENTS: [&str; 5] = ["enable", "disable", "settings", "front", "app"];
 
 fn segment(value: &str) -> String {
     url::form_urlencoded::byte_serialize(value.as_bytes()).collect()

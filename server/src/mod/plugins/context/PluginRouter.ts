@@ -2,7 +2,7 @@ import type { PluginRouteHandler } from './contextTypes.js';
 
 export type RouteMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-export const RESERVED_FIRST_SEGMENTS: readonly string[] = ['enable', 'disable', 'settings', 'front'];
+export const RESERVED_FIRST_SEGMENTS: readonly string[] = ['enable', 'disable', 'settings', 'front', 'app'];
 
 const LITERAL_PATTERN = /^[A-Za-z0-9._~-]+$/;
 const PARAM_PATTERN = /^:([A-Za-z_][A-Za-z0-9_]*)$/;

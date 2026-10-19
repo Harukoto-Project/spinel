@@ -2,7 +2,10 @@ import path from 'node:path';
 import { withTransaction, type Db } from '../db/Database.js';
 import { HttpError } from '../http/HttpError.js';
 import type { Logger } from '../logger.js';
+import { toAppView } from './app/appView.js';
+import { hasAppSpec } from './app/appTypes.js';
 import type { PluginAppRuntime } from './app/PluginAppRuntime.js';
+import type { AppOverview, LogChunk, SetupView, SourceView, TaskView } from './app/appRuntimeTypes.js';
 import type { RouteMatch } from './context/PluginRouter.js';
 import { readFrontAsset, type FrontAsset } from './frontAssets.js';
 import { isPermissionCovered, isSamePermissions, normalizePermissions } from './permissions.js';
@@ -204,6 +207,42 @@ export class PluginService {
     });
   }
 
+  public async appOverview(id: string): Promise<AppOverview> {
+    return this.app.overview(await this.requirePlugin(id));
+  }
+
+  public async updateAppSource(id: string): Promise<SourceView> {
+    return this.app.updateSource(await this.requirePlugin(id));
+  }
+
+  public async runAppSetup(id: string): Promise<SetupView> {
+    return this.app.startSetup(await this.requirePlugin(id));
+  }
+
+  public async readAppSetupLogs(id: string, stepId: string, after: number): Promise<LogChunk> {
+    return this.app.readSetupLogs(await this.requirePlugin(id), stepId, after);
+  }
+
+  public async runAppTask(id: string, commandId: string, inputs: Record<string, unknown>): Promise<TaskView> {
+    return this.app.startTask(await this.requirePlugin(id), commandId, inputs);
+  }
+
+  public async stopAppTask(id: string, commandId: string): Promise<TaskView> {
+    return this.app.stopTask(await this.requirePlugin(id), commandId);
+  }
+
+  public async readAppTaskLogs(
+    id: string,
+    commandId: string,
+    after: number,
+  ): Promise<{ logs: LogChunk; task: TaskView }> {
+    return this.app.readTaskLogs(await this.requirePlugin(id), commandId, after);
+  }
+
+  public async runAppQuery(id: string, commandId: string, inputs: Record<string, unknown>): Promise<unknown> {
+    return this.app.runQuery(await this.requirePlugin(id), commandId, inputs);
+  }
+
   private toPluginView(plugin: PluginRecord, repositorySha: string | null): PluginView {
     const { manifest } = plugin;
     const loadedSha = this.loader.loadedSha(plugin.id);
@@ -216,6 +255,8 @@ export class PluginService {
       hasServer: manifest.server !== null,
       hasFront: manifest.front !== null,
       frontEntry: manifest.front === null ? null : manifest.front.entry.slice('front/'.length),
+      hasApp: hasAppSpec(manifest.app),
+      app: toAppView(manifest.app),
       enabled: plugin.enabled,
       status: !plugin.enabled ? 'disabled' : plugin.errorMessage !== null ? 'error' : 'active',
       errorMessage: plugin.errorMessage,
