@@ -2,6 +2,7 @@ import path from 'node:path';
 import { withTransaction, type Db } from '../db/Database.js';
 import { HttpError } from '../http/HttpError.js';
 import type { Logger } from '../logger.js';
+import type { PluginAppRuntime } from './app/PluginAppRuntime.js';
 import type { RouteMatch } from './context/PluginRouter.js';
 import { readFrontAsset, type FrontAsset } from './frontAssets.js';
 import { isPermissionCovered, isSamePermissions, normalizePermissions } from './permissions.js';
@@ -26,6 +27,7 @@ export class PluginService {
     private readonly db: Db,
     private readonly installer: PluginInstaller,
     private readonly loader: PluginLoader,
+    private readonly app: PluginAppRuntime,
     private readonly logger: Logger,
   ) {}
 
@@ -87,6 +89,7 @@ export class PluginService {
       const repository = await this.requireRepository(id);
       const fetched = await this.installer.fetch(repository.url);
       const toUnload: string[] = [];
+      const vanished: string[] = [];
       try {
         if (fetched.sha === repository.installedSha) return await this.listRepositories();
 
@@ -115,6 +118,7 @@ export class PluginService {
             existing.delete(manifest.id);
           }
           toUnload.push(...existing.keys());
+          vanished.push(...existing.keys());
           await plugins.removeByIds([...existing.keys()]);
 
           await repositories.update(id, { name: fetched.contents.index.name, installedSha: fetched.sha, updatedAt: now });
@@ -125,6 +129,7 @@ export class PluginService {
       }
 
       for (const pluginId of toUnload) await this.loader.unload(pluginId);
+      for (const pluginId of vanished) await this.purgeAppFiles(pluginId);
       this.logger.info(`プラグインのリポジトリを更新しました: ${repository.url}`);
       return this.listRepositories();
     });
@@ -133,7 +138,10 @@ export class PluginService {
   public removeRepository(id: string): Promise<PluginRepositoryView[]> {
     return this.serialize(async () => {
       const repository = await this.requireRepository(id);
-      for (const plugin of await new PluginStore(this.db).listByRepository(id)) await this.loader.unload(plugin.id);
+      for (const plugin of await new PluginStore(this.db).listByRepository(id)) {
+        await this.loader.unload(plugin.id);
+        await this.purgeAppFiles(plugin.id);
+      }
 
       await new RepositoryStore(this.db).remove(id);
       await this.installer.remove(id).catch((error: unknown) => {
@@ -159,7 +167,7 @@ export class PluginService {
       const store = new PluginStore(this.db);
       await this.loader.unload(id);
       await store.setEnabled(id, true, grantedPermissions);
-      await this.loader.load({ ...plugin, enabled: true, grantedPermissions });
+      await this.loader.load({ ...plugin, enabled: true, grantedPermissions }, 'enable');
       this.logger.info(`プラグインを有効化しました: ${id}`);
       return this.listPlugins();
     });
@@ -218,6 +226,12 @@ export class PluginService {
       settingValues: pickValidValues(manifest.settings, plugin.config),
       secretsSet: plugin.secretKeys.filter((key) => manifest.settings.some((s) => s.type === 'secret' && s.key === key)),
     };
+  }
+
+  private async purgeAppFiles(pluginId: string): Promise<void> {
+    await this.app.purge(pluginId).catch((error: unknown) => {
+      this.logger.error(`プラグインのソース・データを削除できませんでした: ${pluginId}`, error);
+    });
   }
 
   private async requireRepository(id: string): Promise<PluginRepositoryRecord> {

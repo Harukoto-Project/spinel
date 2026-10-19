@@ -6,6 +6,7 @@ import type { NotificationPayload } from '../notifications/protocol.js';
 import { createPluginContext } from './context/createPluginContext.js';
 import type { PluginActivate, PluginInstance } from './context/contextTypes.js';
 import { PluginRouter, type RouteMatch } from './context/PluginRouter.js';
+import type { PluginAppRuntime, PrepareReason } from './app/PluginAppRuntime.js';
 import type { PluginInstaller } from './PluginInstaller.js';
 import type { PluginProcessManager } from './process/PluginProcessManager.js';
 import { PluginStorageStore } from './PluginStorageStore.js';
@@ -28,6 +29,7 @@ export interface PluginLoaderDeps {
   db: Db;
   installer: PluginInstaller;
   processes: PluginProcessManager;
+  app: PluginAppRuntime;
   publish: (payload: NotificationPayload) => number;
   logger: Logger;
 }
@@ -73,12 +75,12 @@ export class PluginLoader {
     }
   }
 
-  public async load(record: PluginRecord): Promise<void> {
+  public async load(record: PluginRecord, reason: PrepareReason = 'boot'): Promise<void> {
     if (this.loaded.has(record.id)) return;
     const store = new PluginStore(this.deps.db);
 
     try {
-      await this.activate(record);
+      await this.activate(record, reason);
       await store.setError(record.id, null);
     } catch (error) {
       await this.unload(record.id);
@@ -96,6 +98,7 @@ export class PluginLoader {
       await this.guard(id, async () => plugin.instance?.deactivate?.());
       for (const deactivator of [...plugin.deactivators].reverse()) await this.guard(id, deactivator);
     }
+    this.deps.app.release(id);
     await this.guard(id, () => this.deps.processes.stopPlugin(id));
   }
 
@@ -104,7 +107,7 @@ export class PluginLoader {
     await this.deps.processes.stopAll();
   }
 
-  private async activate(record: PluginRecord): Promise<void> {
+  private async activate(record: PluginRecord, reason: PrepareReason): Promise<void> {
     const permissions = record.grantedPermissions;
     if (permissions === null) throw new Error('権限が許可されていません');
 
@@ -113,6 +116,8 @@ export class PluginLoader {
 
     const plugin: LoadedPlugin = { sha: repository.installedSha, router: new PluginRouter(), deactivators: [], instance: null };
     this.loaded.set(record.id, plugin);
+
+    await this.deps.app.prepare(record, reason);
 
     const entry = record.manifest.server?.entry;
     if (entry === undefined) return;

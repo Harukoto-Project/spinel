@@ -33,6 +33,8 @@ import { MailSettingsStore } from './mail/settings/MailSettingsStore.js';
 import { NotificationHub } from './notifications/NotificationHub.js';
 import { GitClient } from './plugins/GitClient.js';
 import { SshKeyService } from './ssh/SshKeyService.js';
+import { PluginAppRuntime } from './plugins/app/PluginAppRuntime.js';
+import { PluginSourceManager } from './plugins/app/PluginSourceManager.js';
 import { PluginInstaller } from './plugins/PluginInstaller.js';
 import { PluginLoader } from './plugins/PluginLoader.js';
 import { PluginProcessManager } from './plugins/process/PluginProcessManager.js';
@@ -125,15 +127,26 @@ export const buildApp = async (config: Config): Promise<FastifyInstance> => {
   app.addHook('onClose', async () => poller.stop());
 
   const sshKey = new SshKeyService(path.resolve(config.dataDir, 'ssh'), logger);
-  const pluginInstaller = new PluginInstaller(path.resolve(config.dataDir, 'plugins', 'repos'), new GitClient(sshKey));
+  const gitClient = new GitClient(sshKey);
+  const pluginInstaller = new PluginInstaller(path.resolve(config.dataDir, 'plugins', 'repos'), gitClient);
+  const pluginProcesses = new PluginProcessManager(logger);
+  const pluginApp = new PluginAppRuntime({
+    db,
+    installer: pluginInstaller,
+    sources: new PluginSourceManager(path.resolve(config.dataDir, 'plugins', 'sources'), gitClient, db),
+    processes: pluginProcesses,
+    dataRoot: path.resolve(config.dataDir, 'plugins', 'data'),
+    logger,
+  });
   const pluginLoader = new PluginLoader({
     db,
     installer: pluginInstaller,
-    processes: new PluginProcessManager(logger),
+    processes: pluginProcesses,
+    app: pluginApp,
     publish: (payload) => hub.publish(payload),
     logger,
   });
-  const pluginService = new PluginService(db, pluginInstaller, pluginLoader, logger);
+  const pluginService = new PluginService(db, pluginInstaller, pluginLoader, pluginApp, logger);
   app.addHook('onReady', async () => pluginLoader.loadAll());
   app.addHook('onClose', async () => pluginLoader.unloadAll());
 

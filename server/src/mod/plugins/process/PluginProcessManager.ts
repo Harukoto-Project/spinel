@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import type { Logger } from '../../logger.js';
 import { ManagedProcessImpl } from './ManagedProcessImpl.js';
-import type { ManagedProcess, PluginProcessApi, SpawnOptions } from './types.js';
+import type { PluginProcessApi, SpawnOptions } from './types.js';
 
 const RUNNING_MAX_PER_PLUGIN = 8;
 
@@ -10,6 +10,12 @@ const DEFAULT_ENV: Record<string, string> = {
   PYTHONIOENCODING: 'utf-8',
   PYTHONUNBUFFERED: '1',
 };
+
+export interface HostSpawnOptions extends SpawnOptions {
+  stdin?: readonly string[];
+  maskValues?: readonly string[];
+  captureStdout?: boolean;
+}
 
 export class PluginProcessManager {
   private readonly running = new Map<string, Set<ManagedProcessImpl>>();
@@ -21,6 +27,15 @@ export class PluginProcessManager {
       spawn: (command, args = [], options = {}) => this.start(pluginId, command, args, options),
       list: () => [...(this.running.get(pluginId) ?? [])],
     };
+  }
+
+  public spawnForHost(
+    pluginId: string,
+    command: string,
+    args: readonly string[],
+    options: HostSpawnOptions,
+  ): Promise<ManagedProcessImpl> {
+    return this.start(pluginId, command, args, options);
   }
 
   public async stopPlugin(pluginId: string): Promise<void> {
@@ -36,17 +51,16 @@ export class PluginProcessManager {
     pluginId: string,
     command: string,
     args: readonly string[],
-    options: SpawnOptions,
-  ): Promise<ManagedProcess> {
-    const set = this.running.get(pluginId) ?? new Set<ManagedProcessImpl>();
-    if (set.size >= RUNNING_MAX_PER_PLUGIN) {
+    options: HostSpawnOptions,
+  ): Promise<ManagedProcessImpl> {
+    if ((this.running.get(pluginId)?.size ?? 0) >= RUNNING_MAX_PER_PLUGIN) {
       throw new Error(`同時に起動できるプロセスは ${RUNNING_MAX_PER_PLUGIN} 個までです`);
     }
 
     const child = spawn(command, [...args], {
       cwd: options.cwd,
       env: { ...process.env, ...DEFAULT_ENV, ...options.env },
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: [options.stdin === undefined ? 'ignore' : 'pipe', 'pipe', 'pipe'],
       windowsHide: true,
       detached: process.platform !== 'win32',
       shell: false,
@@ -57,12 +71,26 @@ export class PluginProcessManager {
       child.once('error', reject);
     });
 
-    const managed = new ManagedProcessImpl(randomUUID(), command, args, child, (finished) => {
-      set.delete(finished);
-      if (set.size === 0) this.running.delete(pluginId);
-    });
-    set.add(managed);
-    this.running.set(pluginId, set);
+    if (options.stdin !== undefined && child.stdin !== null) {
+      child.stdin.on('error', () => undefined);
+      child.stdin.end(options.stdin.map((line) => `${line}\n`).join(''));
+    }
+
+    const managed = new ManagedProcessImpl(
+      randomUUID(),
+      command,
+      args,
+      child,
+      (finished) => {
+        const current = this.running.get(pluginId);
+        current?.delete(finished);
+        if (current !== undefined && current.size === 0) this.running.delete(pluginId);
+      },
+      { maskValues: options.maskValues, captureStdout: options.captureStdout },
+    );
+    const registered = this.running.get(pluginId) ?? new Set<ManagedProcessImpl>();
+    registered.add(managed);
+    this.running.set(pluginId, registered);
     this.logger.info(`プラグイン ${pluginId} がプロセスを起動しました: ${command}(pid ${child.pid ?? '?'})`);
     return managed;
   }
