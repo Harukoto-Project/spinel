@@ -1,17 +1,17 @@
 import { useId, useState } from 'react';
+import { PageSection } from '@/components/common/PageSection';
 import { SettingRow } from '@/components/form/SettingRow';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { APP_SETTING_FIELDS } from '@/config/appSettings';
 import { describeError } from '@/lib/errors';
 import type { AppSettings } from '@/types/appSettings';
 
-type AppSettingsCardProps = {
+type AppSettingsFormProps = {
   settings: AppSettings;
   onSave: (settings: AppSettings) => Promise<void>;
 };
 
-export function AppSettingsCard({ settings, onSave }: AppSettingsCardProps) {
+export function AppSettingsForm({ settings, onSave }: AppSettingsFormProps) {
   const baseId = useId();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,12 +29,11 @@ export function AppSettingsCard({ settings, onSave }: AppSettingsCardProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>起動とタスクトレイ</CardTitle>
-        <CardDescription>Spinel の起動時とウィンドウを閉じたときの動作です。変更はすぐに反映されます。</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-6">
+    <PageSection
+      title="起動とタスクトレイ"
+      description="Spinel の起動時とウィンドウを閉じたときの動作です。変更はすぐに反映されます。"
+    >
+      <div className="flex max-w-3xl flex-col gap-6">
         {APP_SETTING_FIELDS.map((field) => {
           const id = `${baseId}-${field.key}`;
           return (
@@ -53,7 +52,7 @@ export function AppSettingsCard({ settings, onSave }: AppSettingsCardProps) {
             {error}
           </p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </PageSection>
   );
 }

@@ -4,7 +4,6 @@ import type { DataTableFeatures } from '@/components/data-table/dataTableFeature
 import { formatDateTime } from '@/components/nodes/nodeFormat';
 import { RepositoryActionsMenu } from '@/components/plugins/RepositoryActionsMenu';
 import type { RepositoryActionHandlers } from '@/components/plugins/repositoryActions';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { PluginRepository } from '@/types/plugin';
 
@@ -29,7 +28,7 @@ export function createRepositoryColumns(handlers: RepositoryActionHandlers) {
     columnHelper.display({
       id: 'plugins',
       header: 'プラグイン',
-      cell: ({ row }) => <Badge variant="outline">{row.original.plugins.length} 件</Badge>,
+      cell: ({ row }) => <span className="tabular-nums">{row.original.plugins.length} 件</span>,
     }),
     columnHelper.accessor('installedSha', {
       header: 'コミット',

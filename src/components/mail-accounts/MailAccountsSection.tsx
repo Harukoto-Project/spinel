@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { PageSection } from '@/components/common/PageSection';
 import { DataTable } from '@/components/data-table/DataTable';
 import { AddMailAccountButton } from '@/components/mail-accounts/AddMailAccountButton';
 import { AddMailAccountDialog } from '@/components/mail-accounts/AddMailAccountDialog';
@@ -38,11 +39,7 @@ export function MailAccountsSection({
   const openAdd = () => setDialogOpen(true);
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">アカウント</h2>
-        {!showEmpty && <AddMailAccountButton onClick={openAdd} />}
-      </div>
+    <PageSection title="アカウント" action={!showEmpty ? <AddMailAccountButton onClick={openAdd} /> : undefined}>
       {showEmpty ? (
         <MailAccountsEmptyState onAddAccount={openAdd} />
       ) : (
@@ -63,6 +60,6 @@ export function MailAccountsSection({
           await onDeleteAccount(account.id);
         }}
       />
-    </section>
+    </PageSection>
   );
 }

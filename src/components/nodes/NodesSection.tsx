@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { PageSection } from '@/components/common/PageSection';
 import { DataTable } from '@/components/data-table/DataTable';
 import { AddNodeButton } from '@/components/nodes/AddNodeButton';
 import { AddNodeDialog } from '@/components/nodes/AddNodeDialog';
@@ -49,31 +50,22 @@ export function NodesSection({ nodes, loading = false, error = null, onAddNode, 
   const openAdd = () => setAddOpen(true);
 
   return (
-    <section className="flex flex-col gap-4">
+    <PageSection title="ノード" action={nodes.length > 0 ? <AddNodeButton onClick={openAdd} /> : undefined}>
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
       )}
       {nodes.length === 0 ? (
-        <>
-          <h2 className="text-lg font-semibold">ノード</h2>
-          <NodesEmptyState onAddNode={openAdd} />
-        </>
+        <NodesEmptyState onAddNode={openAdd} />
       ) : (
-        <>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold">ノード</h2>
-            <AddNodeButton onClick={openAdd} />
-          </div>
-          <DataTable
-            columns={columns}
-            data={filteredNodes}
-            loading={searching || loading}
-            emptyMessage="一致するノードがありません"
-            renderRowContextMenu={(node) => <NodeContextMenuContent node={node} handlers={handlers} />}
-          />
-        </>
+        <DataTable
+          columns={columns}
+          data={filteredNodes}
+          loading={searching || loading}
+          emptyMessage="一致するノードがありません"
+          renderRowContextMenu={(node) => <NodeContextMenuContent node={node} handlers={handlers} />}
+        />
       )}
       <AddNodeDialog open={addOpen} onOpenChange={setAddOpen} onAddNode={onAddNode} />
       <NodeDetailsDialog node={detailsNode} onOpenChange={(open) => !open && setDetailsId(null)} />
@@ -85,6 +77,6 @@ export function NodesSection({ nodes, loading = false, error = null, onAddNode, 
           setDeleteId(null);
         }}
       />
-    </section>
+    </PageSection>
   );
 }

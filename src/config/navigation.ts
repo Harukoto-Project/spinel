@@ -1,4 +1,4 @@
-﻿import { Container, History, Key, LayoutDashboard, Mail, Settings, type LucideIcon } from 'lucide-react';
+import { AtSign, Bell, History, Key, LayoutDashboard, Puzzle, Settings, type LucideIcon } from 'lucide-react';
 
 export type NavPosition = 'top' | 'bottom';
 
@@ -9,44 +9,32 @@ export type NavItemConfig = {
   position?: NavPosition;
   parentId?: string;
   group?: string;
-  searchable?: boolean;
 };
 
 export const NAV_ITEMS: NavItemConfig[] = [
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: 'ダッシュボード',
     icon: LayoutDashboard,
     group: 'アプリケーション',
-    searchable: true,
-  },
-  {
-    id: 'email-notification-settings',
-    label: 'メールの通知設定',
-    icon: Mail,
-    group: 'メール',
   },
   {
     id: 'mail-history',
     label: '通知履歴',
     icon: History,
-    group: 'メール',
-    searchable: true,
+    group: 'アプリケーション',
   },
   {
-    id: 'plugins',
-    label: 'プラグインの管理',
-    icon: Container,
-    group: 'プラグイン',
-    searchable: true,
-    position: 'bottom',
+    id: 'email-notification-settings',
+    label: 'メールの通知設定',
+    icon: Bell,
+    group: 'メール',
   },
   {
     id: 'mail-accounts',
     label: 'メールアカウント',
-    icon: Mail,
-    group: '設定',
-    position: 'bottom',
+    icon: AtSign,
+    group: 'メール',
   },
   {
     id: 'api-settings',
@@ -56,8 +44,15 @@ export const NAV_ITEMS: NavItemConfig[] = [
     position: 'bottom',
   },
   {
+    id: 'plugins',
+    label: 'プラグインの管理',
+    icon: Puzzle,
+    group: '設定',
+    position: 'bottom',
+  },
+  {
     id: 'settings',
-    label: '設定',
+    label: 'アプリの設定',
     icon: Settings,
     group: '設定',
     position: 'bottom',
@@ -87,11 +82,12 @@ export function getNavGroupsByPosition(position: NavPosition, items: NavItemConf
     }
   }
 
-  return groups;
-}
+  const labeled = groups.filter((group) => group.label && group.items.length >= 2);
+  const unlabeledItems = groups
+    .filter((group) => !group.label || group.items.length < 2)
+    .flatMap((group) => group.items);
 
-export function isNavSearchable(id: string, items: NavItemConfig[] = NAV_ITEMS): boolean {
-  return items.find((item) => item.id === id)?.searchable ?? false;
+  return unlabeledItems.length > 0 ? [...labeled, { items: unlabeledItems }] : labeled;
 }
 
 export function getNavTrail(id: string, items: NavItemConfig[] = NAV_ITEMS): NavItemConfig[] {

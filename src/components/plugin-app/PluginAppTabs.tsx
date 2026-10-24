@@ -33,7 +33,7 @@ export function PluginAppTabs() {
         </TabsList>
       </div>
       {tabs.map((tab) => (
-        <TabsContent key={tab.id} value={tab.id} className="flex flex-col gap-4">
+        <TabsContent key={tab.id} value={tab.id} className="flex flex-col gap-8">
           {tab.id === SETUP_TAB_ID ? (
             <SetupTab />
           ) : (

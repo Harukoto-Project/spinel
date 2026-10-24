@@ -6,7 +6,7 @@ import { usePageSearch } from '@/contexts/PageSearchContext';
 
 const SHORTCUT_KEY = 'k';
 
-export function HeaderSearch() {
+export function PageSearch() {
   const { query, setQuery } = usePageSearch();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -35,7 +35,7 @@ export function HeaderSearch() {
       placeholder="ページ内を検索"
       inputRef={inputRef}
       onKeyDown={handleKeyDown}
-      className="ml-auto w-40 sm:w-64"
+      className="w-full sm:w-64"
       hint={
         <KbdGroup className="max-sm:hidden">
           <Kbd>{isMacPlatform() ? '⌘' : 'Ctrl'}</Kbd>

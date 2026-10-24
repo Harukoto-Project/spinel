@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import { StatusLabel } from '@/components/common/StatusLabel';
 import { NETWORK_ANY_ORIGIN, PLUGIN_PERMISSIONS } from '@/config/pluginPermissions';
 import type { PluginPermissions } from '@/types/plugin';
 
@@ -49,7 +49,7 @@ export function PluginPermissionList({ permissions }: PluginPermissionListProps)
         <li key={item.id} className="flex flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
             <span className="break-all">{item.label}</span>
-            {item.dangerous && <Badge variant="destructive">強い権限</Badge>}
+            {item.dangerous && <StatusLabel tone="warning">強い権限</StatusLabel>}
           </div>
           <p className="text-sm text-muted-foreground">{item.description}</p>
         </li>

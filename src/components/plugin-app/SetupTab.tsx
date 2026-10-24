@@ -4,7 +4,7 @@ import { PanelCard } from '@/components/plugin-app/PanelCard';
 import { SetupStepItem } from '@/components/plugin-app/SetupStepItem';
 import { SETUP_STATUS_LABELS } from '@/components/plugin-app/statusLabels';
 import { SourceCard } from '@/components/plugin-app/SourceCard';
-import { ToneBadge } from '@/components/plugin-app/ToneBadge';
+import { ToneLabel } from '@/components/plugin-app/ToneLabel';
 import { Button } from '@/components/ui/button';
 import { usePluginAppContext } from '@/contexts/PluginAppContext';
 import { describeError } from '@/lib/errors';
@@ -35,7 +35,7 @@ export function SetupTab() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-8">
       {app.source !== null && (
         <SourceCard
           source={app.source}
@@ -50,7 +50,7 @@ export function SetupTab() {
           description="初回に実行する準備の手順です。完了するとコマンドを実行できます。"
           action={
             <div className="flex flex-wrap items-center justify-end gap-2">
-              <ToneBadge tone={statusLabel.tone}>{statusLabel.label}</ToneBadge>
+              <ToneLabel tone={statusLabel.tone}>{statusLabel.label}</ToneLabel>
               <Button
                 className="cursor-pointer"
                 variant="outline"
@@ -64,7 +64,7 @@ export function SetupTab() {
             </div>
           }
         >
-          <ol className="flex flex-col gap-3">
+          <ol className="flex flex-col divide-y divide-border">
             {overview.setup.steps.map((step, index) => (
               <SetupStepItem key={step.id} index={index} step={step} />
             ))}

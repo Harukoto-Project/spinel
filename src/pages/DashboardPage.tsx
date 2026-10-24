@@ -1,14 +1,20 @@
-import { PageHeader } from '@/components/layout/PageHeader';
+import { PageBody } from '@/components/common/PageBody';
+import { PageHeader } from '@/components/common/PageHeader';
 import { NodesSection } from '@/components/nodes/NodesSection';
+import { PageSearch } from '@/components/search/PageSearch';
 import { useNodesContext } from '@/contexts/NodesContext';
 
 export function DashboardPage() {
   const { nodes, loading, error, addNode, removeNode } = useNodesContext();
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-8">
-      <PageHeader title="Dashboard" />
-      <NodesSection nodes={nodes} loading={loading} error={error} onAddNode={addNode} onRemoveNode={removeNode} />
-    </div>
+    <>
+      <PageHeader title="ダッシュボード">
+        <PageSearch />
+      </PageHeader>
+      <PageBody>
+        <NodesSection nodes={nodes} loading={loading} error={error} onAddNode={addNode} onRemoveNode={removeNode} />
+      </PageBody>
+    </>
   );
 }

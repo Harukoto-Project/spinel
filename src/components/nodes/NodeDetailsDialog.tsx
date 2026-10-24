@@ -1,5 +1,5 @@
 import { DetailRow } from '@/components/form/DetailRow';
-import { NodeStatusBadge } from '@/components/nodes/NodeStatusBadge';
+import { NodeStatusLabel } from '@/components/nodes/NodeStatusLabel';
 import { EMPTY_VALUE, formatDateTime, formatPing } from '@/components/nodes/nodeFormat';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { NodeInfo } from '@/types/node';
@@ -23,7 +23,7 @@ export function NodeDetailsDialog({ node, onOpenChange }: NodeDetailsDialogProps
             </DialogHeader>
             <dl className="divide-y">
               <DetailRow label="ステータス">
-                <NodeStatusBadge status={node.status} />
+                <NodeStatusLabel status={node.status} />
               </DetailRow>
               <DetailRow label="OS">{health?.os.name ?? EMPTY_VALUE}</DetailRow>
               <DetailRow label="バージョン">{health?.version ?? EMPTY_VALUE}</DetailRow>

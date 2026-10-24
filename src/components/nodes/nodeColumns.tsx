@@ -1,7 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import type { DataTableFeatures } from '@/components/data-table/dataTableFeatures';
 import { NodeActionsMenu } from '@/components/nodes/NodeActionsMenu';
-import { NodeStatusBadge } from '@/components/nodes/NodeStatusBadge';
+import { NodeStatusLabel } from '@/components/nodes/NodeStatusLabel';
 import type { NodeActionHandlers } from '@/components/nodes/nodeActions';
 import { EMPTY_VALUE, formatDateTime, formatPing } from '@/components/nodes/nodeFormat';
 import type { NodeInfo } from '@/types/node';
@@ -12,11 +12,11 @@ export function createNodeColumns(handlers: NodeActionHandlers) {
   return columnHelper.columns([
     columnHelper.accessor('name', {
       header: '名前',
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      cell: ({ row }) => <span className="font-medium text-foreground">{row.original.name}</span>,
     }),
     columnHelper.accessor('status', {
       header: 'ステータス',
-      cell: ({ row }) => <NodeStatusBadge status={row.original.status} />,
+      cell: ({ row }) => <NodeStatusLabel status={row.original.status} />,
     }),
     columnHelper.accessor('address', {
       header: 'アドレス',

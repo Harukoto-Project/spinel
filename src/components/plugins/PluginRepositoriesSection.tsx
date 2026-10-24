@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
+import { PageSection } from '@/components/common/PageSection';
 import { DataTable } from '@/components/data-table/DataTable';
 import { AddRepositoryButton } from '@/components/plugins/AddRepositoryButton';
 import { AddRepositoryDialog } from '@/components/plugins/AddRepositoryDialog';
@@ -56,11 +57,12 @@ export function PluginRepositoriesSection({
   const deleteRepository = repositories.find((repository) => repository.id === deleteId) ?? null;
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">リポジトリ</h2>
-        <AddRepositoryButton onClick={() => setAddOpen(true)} />
-      </div>
+    <PageSection
+      title="リポジトリ"
+      description="プラグインの取得元です。追加すると、中のプラグインがインストールされます。"
+      action={<AddRepositoryButton onClick={() => setAddOpen(true)} />}
+      divided
+    >
       {pendingMessage && (
         <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
           <LoaderCircle className="size-4 animate-spin" />
@@ -89,6 +91,6 @@ export function PluginRepositoriesSection({
           void runExclusive(`「${repository.name}」を削除しています…`, () => onDeleteRepository(repository.id));
         }}
       />
-    </section>
+    </PageSection>
   );
 }
