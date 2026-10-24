@@ -11,7 +11,7 @@ import {
 } from '@/components/plugin-app/commandInputDraft';
 import { formatClock } from '@/components/plugin-app/format';
 import { TASK_STATUS_LABELS } from '@/components/plugin-app/statusLabels';
-import { ToneBadge } from '@/components/plugin-app/ToneBadge';
+import { ToneLabel } from '@/components/plugin-app/ToneLabel';
 import { Button } from '@/components/ui/button';
 import { usePluginAppContext } from '@/contexts/PluginAppContext';
 import { describeError } from '@/lib/errors';
@@ -73,13 +73,13 @@ export function CommandRunner({ command }: CommandRunnerProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border p-4">
+    <div className="flex flex-col gap-4 not-first:border-t not-first:border-border not-first:pt-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 flex-col gap-1">
           <h4 className="break-words text-sm font-medium">{command.label}</h4>
           {command.description && <p className="text-sm text-muted-foreground">{command.description}</p>}
         </div>
-        <ToneBadge tone={statusLabel.tone}>{statusLabel.label}</ToneBadge>
+        <ToneLabel tone={statusLabel.tone}>{statusLabel.label}</ToneLabel>
       </div>
 
       {command.inputs.length > 0 && (

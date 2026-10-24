@@ -1,6 +1,6 @@
 import { MailAccountsSection } from '@/components/mail-accounts/MailAccountsSection';
-import { MailSettingsCard } from '@/components/mail-accounts/MailSettingsCard';
-import { MailSettingsCardSkeleton } from '@/components/mail-accounts/MailSettingsCardSkeleton';
+import { MailSettingsForm } from '@/components/mail-accounts/MailSettingsForm';
+import { MailSettingsFormSkeleton } from '@/components/mail-accounts/MailSettingsFormSkeleton';
 import { useMailAccounts } from '@/hooks/use-mail-accounts';
 import { useMailSettings } from '@/hooks/use-mail-settings';
 
@@ -14,7 +14,7 @@ export function MailAccountsNodeSettings({ nodeId }: MailAccountsNodeSettingsPro
   const error = accounts.error ?? mailSettings.error;
 
   return (
-    <div className="flex flex-col gap-8">
+    <>
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
@@ -27,10 +27,10 @@ export function MailAccountsNodeSettings({ nodeId }: MailAccountsNodeSettingsPro
         onDeleteAccount={accounts.deleteAccount}
       />
       {mailSettings.loading ? (
-        <MailSettingsCardSkeleton />
+        <MailSettingsFormSkeleton />
       ) : (
-        mailSettings.settings && <MailSettingsCard settings={mailSettings.settings} onSave={mailSettings.save} />
+        mailSettings.settings && <MailSettingsForm settings={mailSettings.settings} onSave={mailSettings.save} />
       )}
-    </div>
+    </>
   );
 }

@@ -8,7 +8,7 @@ type MailAccountsEmptyStateProps = {
 
 export function MailAccountsEmptyState({ onAddAccount }: MailAccountsEmptyStateProps) {
   return (
-    <Empty className="border">
+    <Empty className="border bg-card">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <Mail />

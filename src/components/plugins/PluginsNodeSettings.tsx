@@ -39,7 +39,7 @@ export function PluginsNodeSettings({ nodeId }: PluginsNodeSettingsProps) {
   );
 
   return (
-    <div className="flex flex-col gap-8">
+    <>
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
@@ -62,6 +62,6 @@ export function PluginsNodeSettings({ nodeId }: PluginsNodeSettingsProps) {
         onRefreshRepository={refreshRepository}
         onDeleteRepository={deleteRepository}
       />
-    </div>
+    </>
   );
 }

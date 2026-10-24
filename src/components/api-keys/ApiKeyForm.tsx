@@ -1,18 +1,19 @@
 import { useId, useState, type FormEvent } from 'react';
+import { PageSection } from '@/components/common/PageSection';
 import { SecretInput } from '@/components/form/SecretInput';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import type { ApiKeyDefinition, ApiKeyStatus } from '@/types/apiKey';
 
-type ApiKeyCardProps = {
+type ApiKeyFormProps = {
   definition: ApiKeyDefinition;
   status: ApiKeyStatus;
+  divided?: boolean;
   onSave: (value: string) => Promise<boolean>;
   onDelete: () => Promise<boolean>;
 };
 
-export function ApiKeyCard({ definition, status, onSave, onDelete }: ApiKeyCardProps) {
+export function ApiKeyForm({ definition, status, divided = false, onSave, onDelete }: ApiKeyFormProps) {
   const inputId = useId();
   const [value, setValue] = useState('');
   const [pending, setPending] = useState(false);
@@ -39,13 +40,9 @@ export function ApiKeyCard({ definition, status, onSave, onDelete }: ApiKeyCardP
   };
 
   return (
-    <Card>
-      <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-6">
-        <CardHeader>
-          <CardTitle>{definition.label}</CardTitle>
-          <CardDescription>{definition.description}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+    <PageSection title={definition.label} description={definition.description} divided={divided}>
+      <form onSubmit={(event) => void handleSubmit(event)} className="flex max-w-xl flex-col gap-4">
+        <div className="flex flex-col gap-2">
           <Label htmlFor={inputId}>{status.configured ? '新しいキーで上書き' : 'APIキー'}</Label>
           <SecretInput
             id={inputId}
@@ -59,18 +56,18 @@ export function ApiKeyCard({ definition, status, onSave, onDelete }: ApiKeyCardP
               サーバーの環境変数で設定済みです。ここで保存すると、保存したキーが優先されます。
             </p>
           )}
-        </CardContent>
-        <CardFooter className="flex-wrap justify-end gap-2">
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" variant="secondary" disabled={trimmed === '' || pending}>
+            キーを保存
+          </Button>
           {status.source === 'app' && (
             <Button type="button" variant="outline" disabled={pending} onClick={() => void handleDelete()}>
-              削除
+              キーを削除
             </Button>
           )}
-          <Button type="submit" disabled={trimmed === '' || pending}>
-            保存
-          </Button>
-        </CardFooter>
+        </div>
       </form>
-    </Card>
+    </PageSection>
   );
 }

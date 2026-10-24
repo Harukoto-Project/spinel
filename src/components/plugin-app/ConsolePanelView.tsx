@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { PanelCard } from '@/components/plugin-app/PanelCard';
 import { TASK_STATUS_LABELS } from '@/components/plugin-app/statusLabels';
 import { TaskLogViewer } from '@/components/plugin-app/TaskLogViewer';
-import { ToneBadge } from '@/components/plugin-app/ToneBadge';
+import { ToneLabel } from '@/components/plugin-app/ToneLabel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePluginAppContext } from '@/contexts/PluginAppContext';
 import type { ConsolePanel } from '@/types/pluginApp';
@@ -30,7 +30,7 @@ export function ConsolePanelView({ panel }: ConsolePanelViewProps) {
     <PanelCard
       title={panel.title}
       description={panel.description}
-      action={<ToneBadge tone={statusLabel.tone}>{statusLabel.label}</ToneBadge>}
+      action={<ToneLabel tone={statusLabel.tone}>{statusLabel.label}</ToneLabel>}
     >
       {commands.length > 1 && (
         <Select value={currentId} onValueChange={setSelectedId}>

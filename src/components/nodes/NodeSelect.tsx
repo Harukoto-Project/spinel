@@ -10,7 +10,7 @@ type NodeSelectProps = {
 export function NodeSelect({ nodes, value, onValueChange }: NodeSelectProps) {
   return (
     <Select value={value ?? undefined} onValueChange={onValueChange}>
-      <SelectTrigger className="w-full sm:w-64" aria-label="ノードを選択">
+      <SelectTrigger className="w-full sm:w-56" aria-label="ノードを選択">
         <SelectValue placeholder="ノードを選択" />
       </SelectTrigger>
       <SelectContent>

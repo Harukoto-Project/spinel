@@ -1,4 +1,4 @@
-import { ToneBadge } from '@/components/plugin-app/ToneBadge';
+import { ToneLabel } from '@/components/plugin-app/ToneLabel';
 import { WidgetLabel } from '@/components/plugin-app/widgets/WidgetLabel';
 import { readText } from '@/components/plugin-app/widgetData';
 import type { BadgeWidget } from '@/types/pluginApp';
@@ -16,7 +16,7 @@ export function BadgeWidgetView({ widget, data }: BadgeWidgetViewProps) {
   return (
     <div className="flex flex-col items-start gap-1">
       <WidgetLabel label={widget.label} />
-      <ToneBadge tone={tone}>{text}</ToneBadge>
+      <ToneLabel tone={tone}>{text}</ToneLabel>
     </div>
   );
 }

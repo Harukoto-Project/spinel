@@ -1,8 +1,5 @@
-import { PageHeader } from '@/components/layout/PageHeader';
 import { MailHistorySection } from '@/components/mail-history/MailHistorySection';
-import { NodeRequiredNotice } from '@/components/nodes/NodeRequiredNotice';
-import { NodeSelect } from '@/components/nodes/NodeSelect';
-import { Skeleton } from '@/components/ui/skeleton';
+import { NodePage } from '@/components/nodes/NodePage';
 import { useNodesContext } from '@/contexts/NodesContext';
 import { useSelectedNode } from '@/hooks/use-selected-node';
 
@@ -11,22 +8,15 @@ export function MailHistoryPage() {
   const { selectedNode, setSelectedId } = useSelectedNode(nodes);
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <PageHeader title="通知履歴" />
-        {!loaded ? (
-          <Skeleton className="h-9 w-full sm:w-64" />
-        ) : (
-          selectedNode && <NodeSelect nodes={nodes} value={selectedNode.id} onValueChange={setSelectedId} />
-        )}
-      </div>
-      {!loaded ? (
-        <Skeleton className="h-48 w-full" />
-      ) : selectedNode ? (
-        <MailHistorySection key={selectedNode.id} nodeId={selectedNode.id} />
-      ) : (
-        <NodeRequiredNotice />
-      )}
-    </div>
+    <NodePage
+      title="通知履歴"
+      nodes={nodes}
+      loaded={loaded}
+      selectedNode={selectedNode}
+      onSelectNode={setSelectedId}
+      searchable
+    >
+      {(nodeId) => <MailHistorySection nodeId={nodeId} />}
+    </NodePage>
   );
 }

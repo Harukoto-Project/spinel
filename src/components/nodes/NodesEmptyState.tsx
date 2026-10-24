@@ -8,7 +8,7 @@ type NodesEmptyStateProps = {
 
 export function NodesEmptyState({ onAddNode }: NodesEmptyStateProps) {
   return (
-    <Empty className="border">
+    <Empty className="border bg-card">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <Server />

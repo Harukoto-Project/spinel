@@ -1,8 +1,8 @@
 import { DetailRow } from '@/components/form/DetailRow';
-import { MailDecisionBadge } from '@/components/mail-history/MailDecisionBadge';
+import { MailDecisionLabel } from '@/components/mail-history/MailDecisionLabel';
 import { formatAccountLabel, formatHistoryTime, formatSubject } from '@/components/mail-history/mailHistoryFormat';
 import { EMPTY_VALUE } from '@/components/nodes/nodeFormat';
-import { NotificationPriorityBadge } from '@/components/notifications/NotificationPriorityBadge';
+import { NotificationPriorityLabel } from '@/components/notifications/NotificationPriorityLabel';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getMailProviderLabel } from '@/config/mailProviders';
 import type { MailHistoryEntry } from '@/types/mailHistory';
@@ -24,11 +24,11 @@ export function MailHistoryDetailsDialog({ entry, onOpenChange }: MailHistoryDet
             </DialogHeader>
             <dl className="divide-y">
               <DetailRow label="判定">
-                <MailDecisionBadge decision={entry.decision} />
+                <MailDecisionLabel decision={entry.decision} />
               </DetailRow>
               {entry.priority && (
                 <DetailRow label="優先度">
-                  <NotificationPriorityBadge priority={entry.priority} />
+                  <NotificationPriorityLabel priority={entry.priority} />
                 </DetailRow>
               )}
               <DetailRow label="差出人">{entry.from || EMPTY_VALUE}</DetailRow>

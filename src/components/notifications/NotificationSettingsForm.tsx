@@ -1,18 +1,18 @@
 import { useId, useState } from 'react';
+import { PageSection } from '@/components/common/PageSection';
 import { SettingRow } from '@/components/form/SettingRow';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { PRIORITY_FILTER_OPTIONS } from '@/config/notifications';
 import { describeError } from '@/lib/errors';
 import type { NotificationSettings } from '@/types/notification';
 
-type NotificationSettingsCardProps = {
+type NotificationSettingsFormProps = {
   settings: NotificationSettings;
   onSave: (settings: NotificationSettings) => Promise<void>;
 };
 
-export function NotificationSettingsCard({ settings, onSave }: NotificationSettingsCardProps) {
+export function NotificationSettingsForm({ settings, onSave }: NotificationSettingsFormProps) {
   const enabledId = useId();
   const filterId = useId();
   const contentId = useId();
@@ -37,14 +37,12 @@ export function NotificationSettingsCard({ settings, onSave }: NotificationSetti
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>通知の設定</CardTitle>
-        <CardDescription>
-          このノードからの通知を Windows の通知として表示する条件です。変更はすぐに反映されます。
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-6">
+    <PageSection
+      title="通知の設定"
+      description="このノードからの通知を Windows の通知として表示する条件です。変更はすぐに反映されます。"
+      divided
+    >
+      <div className="flex max-w-3xl flex-col gap-6">
         <SettingRow
           label="通知を受け取る"
           description="オフにすると、このノードとの WebSocket 接続も切断します。"
@@ -92,7 +90,7 @@ export function NotificationSettingsCard({ settings, onSave }: NotificationSetti
             {error}
           </p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </PageSection>
   );
 }

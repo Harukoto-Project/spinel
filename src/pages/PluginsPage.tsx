@@ -1,32 +1,22 @@
-import { PageHeader } from '@/components/layout/PageHeader';
-import { NodeRequiredNotice } from '@/components/nodes/NodeRequiredNotice';
-import { NodeSelect } from '@/components/nodes/NodeSelect';
+import { NodePage } from '@/components/nodes/NodePage';
 import { PluginsNodeSettings } from '@/components/plugins/PluginsNodeSettings';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useActiveNode } from '@/contexts/ActiveNodeContext';
 import { useNodesContext } from '@/contexts/NodesContext';
 
 export function PluginsPage() {
   const { nodes, loaded } = useNodesContext();
-  const { activeNode: selectedNode, setActiveNodeId: setSelectedId } = useActiveNode();
+  const { activeNode, setActiveNodeId } = useActiveNode();
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <PageHeader title="プラグインの管理" />
-        {!loaded ? (
-          <Skeleton className="h-9 w-full sm:w-64" />
-        ) : (
-          selectedNode && <NodeSelect nodes={nodes} value={selectedNode.id} onValueChange={setSelectedId} />
-        )}
-      </div>
-      {!loaded ? (
-        <Skeleton className="h-48 w-full" />
-      ) : selectedNode ? (
-        <PluginsNodeSettings key={selectedNode.id} nodeId={selectedNode.id} />
-      ) : (
-        <NodeRequiredNotice />
-      )}
-    </div>
+    <NodePage
+      title="プラグインの管理"
+      nodes={nodes}
+      loaded={loaded}
+      selectedNode={activeNode}
+      onSelectNode={setActiveNodeId}
+      searchable
+    >
+      {(nodeId) => <PluginsNodeSettings nodeId={nodeId} />}
+    </NodePage>
   );
 }
