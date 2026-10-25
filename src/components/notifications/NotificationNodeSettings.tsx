@@ -1,7 +1,7 @@
-import { NotificationConnectionCard } from '@/components/notifications/NotificationConnectionCard';
+import { NotificationConnectionForm } from '@/components/notifications/NotificationConnectionForm';
 import { NotificationNodeSettingsSkeleton } from '@/components/notifications/NotificationNodeSettingsSkeleton';
-import { NotificationSettingsCard } from '@/components/notifications/NotificationSettingsCard';
-import { NotificationTestCard } from '@/components/notifications/NotificationTestCard';
+import { NotificationSettingsForm } from '@/components/notifications/NotificationSettingsForm';
+import { NotificationTestSection } from '@/components/notifications/NotificationTestSection';
 import { useNotificationConfig } from '@/hooks/use-notification-config';
 import { useNotificationConnection } from '@/hooks/use-notification-connection';
 
@@ -14,7 +14,7 @@ export function NotificationNodeSettings({ nodeId }: NotificationNodeSettingsPro
   const { status, loading: statusLoading } = useNotificationConnection(nodeId);
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
@@ -24,21 +24,19 @@ export function NotificationNodeSettings({ nodeId }: NotificationNodeSettingsPro
         <NotificationNodeSettingsSkeleton />
       ) : (
         config && (
-          <div className="grid gap-4 xl:grid-cols-2">
-            <NotificationConnectionCard
+          <>
+            <NotificationConnectionForm
               status={status}
               statusLoading={statusLoading}
               adminKeySet={config.adminKeySet}
               onSaveKey={saveAdminKey}
               onDeleteKey={deleteAdminKey}
             />
-            <NotificationSettingsCard settings={config.settings} onSave={saveSettings} />
-            <div className="xl:col-span-2">
-              <NotificationTestCard nodeId={nodeId} connected={status?.state === 'connected'} />
-            </div>
-          </div>
+            <NotificationSettingsForm settings={config.settings} onSave={saveSettings} />
+            <NotificationTestSection nodeId={nodeId} connected={status?.state === 'connected'} />
+          </>
         )
       )}
-    </div>
+    </>
   );
 }

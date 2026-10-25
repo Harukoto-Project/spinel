@@ -64,7 +64,10 @@ export function PanelSettingsForm({ keys }: PanelSettingsFormProps) {
   };
 
   return (
-    <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-4 rounded-lg border p-4">
+    <form
+      onSubmit={(event) => void handleSubmit(event)}
+      className="flex flex-col gap-4 not-first:border-t not-first:border-border not-first:pt-6"
+    >
       <h4 className="text-sm font-medium">設定</h4>
       <div className="flex flex-col gap-5">
         {scoped.settings.map((schema) => (

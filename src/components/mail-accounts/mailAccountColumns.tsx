@@ -1,10 +1,9 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import type { DataTableFeatures } from '@/components/data-table/dataTableFeatures';
 import { MailAccountActionsMenu } from '@/components/mail-accounts/MailAccountActionsMenu';
-import { MailAccountStatusBadge } from '@/components/mail-accounts/MailAccountStatusBadge';
+import { MailAccountStatusLabel } from '@/components/mail-accounts/MailAccountStatusLabel';
 import type { MailAccountActionHandlers } from '@/components/mail-accounts/mailAccountActions';
 import { EMPTY_VALUE, formatDateTime } from '@/components/nodes/nodeFormat';
-import { Badge } from '@/components/ui/badge';
 import { getMailProviderLabel } from '@/config/mailProviders';
 import type { MailAccount } from '@/types/mailAccount';
 
@@ -14,7 +13,7 @@ export function createMailAccountColumns(handlers: MailAccountActionHandlers) {
   return columnHelper.columns([
     columnHelper.accessor('name', {
       header: 'アカウント名',
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      cell: ({ row }) => <span className="font-medium text-foreground">{row.original.name}</span>,
     }),
     columnHelper.accessor('email', {
       header: 'メールアドレス',
@@ -22,13 +21,13 @@ export function createMailAccountColumns(handlers: MailAccountActionHandlers) {
     }),
     columnHelper.accessor('provider', {
       header: 'プロバイダー',
-      cell: ({ row }) => <Badge variant="outline">{getMailProviderLabel(row.original.provider)}</Badge>,
+      cell: ({ row }) => <span className="text-muted-foreground">{getMailProviderLabel(row.original.provider)}</span>,
     }),
     columnHelper.accessor('connected', {
       header: '状態',
       cell: ({ row }) => (
         <div className="flex flex-col items-start gap-1">
-          <MailAccountStatusBadge connected={row.original.connected} />
+          <MailAccountStatusLabel connected={row.original.connected} />
           {row.original.lastError && (
             <span className="max-w-72 truncate text-xs text-destructive" title={row.original.lastError}>
               {row.original.lastError}

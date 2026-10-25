@@ -2,22 +2,13 @@ import { useState } from 'react';
 import { Settings } from 'lucide-react';
 import { EnablePluginDialog } from '@/components/plugins/EnablePluginDialog';
 import { PluginSettingsDialog } from '@/components/plugins/PluginSettingsDialog';
-import { PluginStatusBadge } from '@/components/plugins/PluginStatusBadge';
+import { PluginStatusLabel } from '@/components/plugins/PluginStatusLabel';
 import { findMissingRequiredSettings } from '@/components/plugins/pluginSettingsDraft';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import type { Plugin, PluginPermissions, PluginSettingsUpdate } from '@/types/plugin';
 
-type PluginCardProps = {
+type PluginRowProps = {
   plugin: Plugin;
   frontError?: string | null;
   onEnable: (grantedPermissions: PluginPermissions) => Promise<void>;
@@ -25,7 +16,7 @@ type PluginCardProps = {
   onSaveSettings: (values: PluginSettingsUpdate) => Promise<void>;
 };
 
-export function PluginCard({ plugin, frontError = null, onEnable, onDisable, onSaveSettings }: PluginCardProps) {
+export function PluginRow({ plugin, frontError = null, onEnable, onDisable, onSaveSettings }: PluginRowProps) {
   const [enableOpen, setEnableOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [disabling, setDisabling] = useState(false);
@@ -47,25 +38,33 @@ export function PluginCard({ plugin, frontError = null, onEnable, onDisable, onS
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex flex-wrap items-center gap-2">
-          <span className="break-all">{plugin.name}</span>
-          <span className="text-xs font-normal text-muted-foreground">v{plugin.version}</span>
-          <PluginStatusBadge status={plugin.status} />
-        </CardTitle>
-        <CardDescription>{plugin.description ?? '説明はありません'}</CardDescription>
-        <CardAction>
+    <li className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="text-sm font-semibold break-all">{plugin.name}</span>
+            <span className="text-xs text-muted-foreground tabular-nums">v{plugin.version}</span>
+            <PluginStatusLabel status={plugin.status} />
+          </div>
+          <p className="text-sm text-muted-foreground">{plugin.description ?? '説明はありません'}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {hasSettings && (
+            <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
+              <Settings />
+              設定
+            </Button>
+          )}
           <Switch
             checked={plugin.enabled}
             disabled={disabling}
             aria-label={`${plugin.name} を${plugin.enabled ? '無効' : '有効'}にする`}
             onCheckedChange={(checked) => void handleToggle(checked)}
           />
-        </CardAction>
-      </CardHeader>
+        </div>
+      </div>
       {(plugin.errorMessage || frontError || plugin.restartRequired || missingRequired.length > 0) && (
-        <CardContent className="flex flex-col gap-2 text-sm">
+        <div className="flex flex-col gap-1 text-sm">
           {plugin.errorMessage && (
             <p role="alert" className="break-words text-destructive">
               {plugin.errorMessage}
@@ -77,24 +76,16 @@ export function PluginCard({ plugin, frontError = null, onEnable, onDisable, onS
             </p>
           )}
           {plugin.restartRequired && (
-            <p className="text-muted-foreground">
+            <p className="text-warning">
               新しいバージョンを取得済みですが、まだ反映されていません。リポジトリの「更新」を押してください。
             </p>
           )}
           {missingRequired.length > 0 && (
-            <p className="text-muted-foreground">
+            <p className="text-warning">
               未設定の必須項目があります: {missingRequired.map((schema) => schema.label).join('、')}
             </p>
           )}
-        </CardContent>
-      )}
-      {hasSettings && (
-        <CardFooter className="justify-end">
-          <Button className="cursor-pointer" variant="outline" onClick={() => setSettingsOpen(true)}>
-            <Settings />
-            設定
-          </Button>
-        </CardFooter>
+        </div>
       )}
       <EnablePluginDialog
         plugin={plugin}
@@ -110,6 +101,6 @@ export function PluginCard({ plugin, frontError = null, onEnable, onDisable, onS
           onSave={onSaveSettings}
         />
       )}
-    </Card>
+    </li>
   );
 }

@@ -13,7 +13,7 @@ export function SidebarBrand({ title, version, commitHash }: SidebarBrandProps) 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton size="lg" asChild tooltip={title} className="cursor-default">
+        <SidebarMenuButton size="lg" asChild tooltip={title} className="h-10 cursor-default">
           <div data-tauri-drag-region className="**:pointer-events-none select-none">
             <img src={APP_LOGO_SRC} alt="" draggable={false} className="size-8 shrink-0 object-contain" />
             <div className="grid flex-1 text-left leading-tight">

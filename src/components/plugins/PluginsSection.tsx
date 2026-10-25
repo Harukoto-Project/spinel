@@ -1,5 +1,6 @@
-import { PluginCard } from '@/components/plugins/PluginCard';
-import { PluginCardSkeleton } from '@/components/plugins/PluginCardSkeleton';
+import { PageSection } from '@/components/common/PageSection';
+import { PluginRow } from '@/components/plugins/PluginRow';
+import { PluginRowSkeleton } from '@/components/plugins/PluginRowSkeleton';
 import type { Plugin, PluginPermissions, PluginSettingsUpdate } from '@/types/plugin';
 
 const SKELETON_COUNT = 2;
@@ -24,24 +25,23 @@ export function PluginsSection({
   onSaveSettings,
 }: PluginsSectionProps) {
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">プラグイン</h2>
+    <PageSection title="プラグイン" description="有効にしたプラグインの画面は、サイドバーに追加されます。">
       {loading ? (
-        <div className="grid gap-4 xl:grid-cols-2">
+        <ul className="flex flex-col divide-y divide-border">
           {Array.from({ length: SKELETON_COUNT }, (_, index) => (
-            <PluginCardSkeleton key={index} />
+            <PluginRowSkeleton key={index} />
           ))}
-        </div>
+        </ul>
       ) : plugins.length === 0 ? (
-        <p className="rounded-md border p-6 text-center text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           {totalCount === 0
             ? 'インストールされているプラグインはありません。リポジトリを追加してください。'
             : '一致するプラグインがありません'}
         </p>
       ) : (
-        <div className="grid gap-4 xl:grid-cols-2">
+        <ul className="flex flex-col divide-y divide-border">
           {plugins.map((plugin) => (
-            <PluginCard
+            <PluginRow
               key={plugin.id}
               plugin={plugin}
               frontError={frontErrors[plugin.id] ?? null}
@@ -50,8 +50,8 @@ export function PluginsSection({
               onSaveSettings={(values) => onSaveSettings(plugin.id, values)}
             />
           ))}
-        </div>
+        </ul>
       )}
-    </section>
+    </PageSection>
   );
 }

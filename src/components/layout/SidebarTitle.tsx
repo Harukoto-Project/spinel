@@ -3,5 +3,5 @@ type SidebarTitleProps = {
 };
 
 export function SidebarTitle({ title }: SidebarTitleProps) {
-  return <span className="truncate font-semibold">{title}</span>;
+  return <span className="truncate font-semibold text-foreground">{title}</span>;
 }

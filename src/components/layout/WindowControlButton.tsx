@@ -20,8 +20,8 @@ export function WindowControlButton({
       title={label}
       tabIndex={-1}
       className={cn(
-        'text-muted-foreground inline-flex h-full w-11.5 items-center justify-center transition-colors outline-none [&_svg]:size-4',
-        danger ? 'hover:bg-destructive hover:text-white' : 'hover:bg-accent hover:text-accent-foreground',
+        'inline-flex h-full w-11.5 items-center justify-center text-neutral-600 transition-colors outline-none dark:text-neutral-300 [&_svg]:size-4',
+        danger ? 'hover:bg-destructive hover:text-neutral-50' : 'hover:bg-accent hover:text-accent-foreground',
         className,
       )}
       {...props}

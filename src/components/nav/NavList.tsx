@@ -14,7 +14,11 @@ export function NavList({ label, items, activeId, onSelect }: NavListProps) {
 
   return (
     <SidebarGroup>
-      {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
+      {label ? (
+        <SidebarGroupLabel className="text-xs font-normal text-neutral-500 dark:text-neutral-400">
+          {label}
+        </SidebarGroupLabel>
+      ) : null}
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (

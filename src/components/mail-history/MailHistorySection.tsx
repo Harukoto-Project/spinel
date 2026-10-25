@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Trash2 } from 'lucide-react';
+import { PageSection } from '@/components/common/PageSection';
 import { DataTable } from '@/components/data-table/DataTable';
 import { ClearMailHistoryDialog } from '@/components/mail-history/ClearMailHistoryDialog';
 import { MailHistoryContextMenuContent } from '@/components/mail-history/MailHistoryContextMenuContent';
@@ -45,16 +46,10 @@ export function MailHistorySection({ nodeId }: MailHistorySectionProps) {
   const filtered = useMemo(() => filterMailHistory(items, debouncedQuery, filters), [items, debouncedQuery, filters]);
 
   return (
-    <section className="flex flex-col gap-4">
+    <PageSection>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <MailHistoryFilters filters={filters} accountOptions={accountOptions} onChange={setFilters} />
-        <Button
-          className="cursor-pointer"
-          type="button"
-          variant="outline"
-          disabled={items.length === 0}
-          onClick={() => setClearOpen(true)}
-        >
+        <Button type="button" variant="outline" disabled={items.length === 0} onClick={() => setClearOpen(true)}>
           <Trash2 />
           履歴をすべて削除
         </Button>
@@ -86,6 +81,6 @@ export function MailHistorySection({ nodeId }: MailHistorySectionProps) {
           void clear();
         }}
       />
-    </section>
+    </PageSection>
   );
 }

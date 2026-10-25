@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react';
+import { PageSection } from '@/components/common/PageSection';
 import { NumberField } from '@/components/form/NumberField';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { MAIL_SETTING_FIELDS } from '@/config/mailSettings';
 import { describeError } from '@/lib/errors';
 import type { MailSettingField, MailSettings } from '@/types/mailAccount';
 
-type MailSettingsCardProps = {
+type MailSettingsFormProps = {
   settings: MailSettings;
   onSave: (settings: MailSettings) => Promise<void>;
 };
@@ -22,7 +22,7 @@ function isValid(field: MailSettingField, raw: string): boolean {
   return raw.trim() !== '' && Number.isInteger(value) && value >= field.min && value <= field.max;
 }
 
-export function MailSettingsCard({ settings, onSave }: MailSettingsCardProps) {
+export function MailSettingsForm({ settings, onSave }: MailSettingsFormProps) {
   const [draft, setDraft] = useState<Draft>(() => toDraft(settings));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,38 +46,36 @@ export function MailSettingsCard({ settings, onSave }: MailSettingsCardProps) {
   };
 
   return (
-    <Card>
-      <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-6">
-        <CardHeader>
-          <CardTitle>取得設定</CardTitle>
-          <CardDescription>ノードがメールを確認する条件です。保存すると次の確認から反映されます。</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-6">
-          {MAIL_SETTING_FIELDS.map((field) => (
-            <NumberField
-              key={field.key}
-              label={field.label}
-              description={field.description}
-              unit={field.unit}
-              min={field.min}
-              max={field.max}
-              value={draft[field.key]}
-              invalid={!isValid(field, draft[field.key])}
-              onValueChange={(value) => setDraft((current) => ({ ...current, [field.key]: value }))}
-            />
-          ))}
-          {error && (
-            <p role="alert" className="text-sm text-destructive">
-              {error}
-            </p>
-          )}
-        </CardContent>
-        <CardFooter className="justify-end">
-          <Button type="submit" className="cursor-pointer" disabled={!valid || !changed || saving}>
-            保存
+    <PageSection
+      title="取得設定"
+      description="ノードがメールを確認する条件です。保存すると次の確認から反映されます。"
+      divided
+    >
+      <form onSubmit={(event) => void handleSubmit(event)} className="flex max-w-xl flex-col gap-6">
+        {MAIL_SETTING_FIELDS.map((field) => (
+          <NumberField
+            key={field.key}
+            label={field.label}
+            description={field.description}
+            unit={field.unit}
+            min={field.min}
+            max={field.max}
+            value={draft[field.key]}
+            invalid={!isValid(field, draft[field.key])}
+            onValueChange={(value) => setDraft((current) => ({ ...current, [field.key]: value }))}
+          />
+        ))}
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        <div>
+          <Button type="submit" variant="secondary" disabled={!valid || !changed || saving}>
+            変更を保存
           </Button>
-        </CardFooter>
+        </div>
       </form>
-    </Card>
+    </PageSection>
   );
 }

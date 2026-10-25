@@ -4,8 +4,10 @@ import { PluginPageFrame } from '@/components/plugins/PluginPageFrame';
 import { PluginPageSkeleton } from '@/components/plugins/PluginPageSkeleton';
 import { DEFAULT_NAV_ID } from '@/config/navigation';
 import { ActiveNodeProvider } from '@/contexts/ActiveNodeContext';
+import { NavigationProvider } from '@/contexts/NavigationContext';
 import { NodesProvider } from '@/contexts/NodesContext';
 import { PluginPagesProvider, usePluginPages } from '@/contexts/PluginPagesContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { isPluginNavId } from '@/plugins/registeredPage';
 import { ApiSettingsPage } from '@/pages/ApiSettingsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -47,21 +49,23 @@ function AppContent() {
   );
 
   return (
-    <AppLayout activeId={activeId} onSelect={setActiveId}>
-      {content}
-    </AppLayout>
+    <NavigationProvider activeId={activeId} onNavigate={setActiveId}>
+      <AppLayout>{content}</AppLayout>
+    </NavigationProvider>
   );
 }
 
 function App() {
   return (
-    <NodesProvider>
-      <ActiveNodeProvider>
-        <PluginPagesProvider>
-          <AppContent />
-        </PluginPagesProvider>
-      </ActiveNodeProvider>
-    </NodesProvider>
+    <ThemeProvider>
+      <NodesProvider>
+        <ActiveNodeProvider>
+          <PluginPagesProvider>
+            <AppContent />
+          </PluginPagesProvider>
+        </ActiveNodeProvider>
+      </NodesProvider>
+    </ThemeProvider>
   );
 }
 

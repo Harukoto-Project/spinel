@@ -25,9 +25,9 @@ export class PluginErrorBoundary extends Component<PluginErrorBoundaryProps, Plu
     if (this.state.error === null) return this.props.children;
 
     return (
-      <div role="alert" className="rounded-md border border-destructive/50 p-6 text-sm">
+      <div role="alert" className="flex flex-col gap-2 border-l-2 border-destructive pl-4 text-sm">
         <p className="font-medium text-destructive">{this.props.pluginName} のページを表示できませんでした</p>
-        <p className="mt-2 break-words text-muted-foreground">{describeError(this.state.error)}</p>
+        <p className="break-words text-muted-foreground">{describeError(this.state.error)}</p>
       </div>
     );
   }

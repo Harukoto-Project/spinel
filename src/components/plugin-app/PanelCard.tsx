@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageSection } from '@/components/common/PageSection';
 
 type PanelCardProps = {
   title: string;
@@ -10,13 +10,13 @@ type PanelCardProps = {
 
 export function PanelCard({ title, description, action, children }: PanelCardProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="break-words">{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
-        {action && <CardAction>{action}</CardAction>}
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">{children}</CardContent>
-    </Card>
+    <PageSection
+      title={title}
+      description={description}
+      action={action}
+      className="not-first:border-t not-first:border-border not-first:pt-8"
+    >
+      {children}
+    </PageSection>
   );
 }
